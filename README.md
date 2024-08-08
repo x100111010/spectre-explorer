@@ -32,7 +32,7 @@ Build the block explorer:
 git clone https://github.com/spectre-project/spectre-explorer
 cd spectre-explorer
 export REACT_APP_VERCEL_GIT_COMMIT_SHA="$(git log -1 --date=short --format="%h" | tr -d '-')"
-export REACT_APP_API_ADDRESS=api.spectre-network.com
+export REACT_APP_API_ADDRESS=api.spectre-network.org
 export REACT_APP_KGI_ADDRESS=kgi.spectre-network.com
 npm install
 ```
