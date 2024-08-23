@@ -216,7 +216,7 @@ function App() {
                       <a className="blockinfo-link" href="https://github.com/spectre-project/spectre-explorer" target="_blank"><FaGithub size="1.3rem" /></a>
                     </OverlayTrigger>
                     <OverlayTrigger placement="right" overlay={<Tooltip id="donate">Donation address</Tooltip>}>
-                      <Link className="blockinfo-link ms-3" to="/addresses/spectre:qpp29df4lga4u5remzn6ng6xz7wxzlcpwrxhlnxlkp0kztt74sst5nay8yap6"><BiDonateHeart size="1.3rem" /></Link>
+                      <Link className="blockinfo-link ms-3" to="/addresses/spectre:qrxf48dgrdkjxllxczek3uweuldtan9nanzjsavk0ak9ynwn0zsayjjh7upez"><BiDonateHeart size="1.3rem" /></Link>
                     </OverlayTrigger>
                     <OverlayTrigger placement="right" overlay={<Tooltip id="github">REST-API server</Tooltip>}>
                       <a className="blockinfo-link ms-3" href={`https://${apiAddress}/`} target="_blank"><SiFastapi size="1.3rem" /></a>
@@ -238,7 +238,7 @@ function App() {
                       <a className="blockinfo-link" href="https://github.com/spectre-project/spectre-explorer" target="_blank"><FaGithub size="1.1rem" /></a>
                     </OverlayTrigger>
                     <OverlayTrigger placement="right" overlay={<Tooltip id="donate">Donation address</Tooltip>}>
-                      <Link className="blockinfo-link ms-2" to="/addresses/spectre:qpp29df4lga4u5remzn6ng6xz7wxzlcpwrxhlnxlkp0kztt74sst5nay8yap6"><BiDonateHeart size="1.1rem" /></Link>
+                      <Link className="blockinfo-link ms-2" to="/addresses/spectre:qrxf48dgrdkjxllxczek3uweuldtan9nanzjsavk0ak9ynwn0zsayjjh7upez"><BiDonateHeart size="1.1rem" /></Link>
                     </OverlayTrigger>
                     <OverlayTrigger placement="right" overlay={<Tooltip id="github">REST-API server</Tooltip>}>
                       <a className="blockinfo-link ms-2" href={`https://${apiAddress}/`} target="_blank"><SiFastapi size="1.1rem" /></a>
