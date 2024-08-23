@@ -14,8 +14,6 @@ to configure the following mandatory environment variables:
 
 * `REACT_APP_API_ADDRESS` which is the public address of the
   REST API endpoint.
-* `REACT_APP_KGI_ADDRESS` which is the public address of the
-  graph inspector to inspect a specific block.
 
 The API endpoint and Graph Inspector must operate on a web server
 secured with SSL.
@@ -33,7 +31,6 @@ git clone https://github.com/spectre-project/spectre-explorer
 cd spectre-explorer
 export REACT_APP_VERCEL_GIT_COMMIT_SHA="$(git log -1 --date=short --format="%h" | tr -d '-')"
 export REACT_APP_API_ADDRESS=api.spectre-network.org
-export REACT_APP_KGI_ADDRESS=kgi.spectre-network.com
 npm install
 ```
 

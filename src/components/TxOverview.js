@@ -43,7 +43,7 @@ const TxOverview = (props) => {
         <div className="d-flex flex-row w-100">
             {!keepUpdating ? <FaPlay id="play-button" className="play-button" onClick={() => setKeepUpdating(true)} /> : <FaPause id="pause-button" className="play-button" onClick={() => setKeepUpdating(false)} />}
 
-            <OverlayTrigger overlay={<Tooltip id="tooltip-kgi">{ignoreCoinbaseTx ? "Show" : "Hide"} coinbase transactions</Tooltip>}>
+            <OverlayTrigger overlay={<Tooltip>{ignoreCoinbaseTx ? "Show" : "Hide"} coinbase transactions</Tooltip>}>
                 <span><BiHide className={`mx-0 mt-3 hide-button ${ignoreCoinbaseTx && "hide-button-active"}`} onClick={toggleCoinbaseTransactions} /></span>
             </OverlayTrigger>
             <h4 className="block-overview-header text-center w-100 me-4">

@@ -12,7 +12,6 @@ import { getBlock, getTransactions } from '../spectre-api-client.js';
 import BlueScoreContext from "./BlueScoreContext.js";
 import CopyButton from "./CopyButton.js";
 import PriceContext from "./PriceContext.js";
-import { kgiAddress } from "../addresses";
 
 const BlockLamp = (props) => {
     return <OverlayTrigger overlay={<Tooltip>It is a {props.isBlue ? "blue" : "red"} block!</Tooltip>}>
@@ -135,11 +134,6 @@ const BlockInfo = () => {
                                     <Col className="blockinfo-key" lg={2}>Hash</Col>
                                     <Col className="blockinfo-value-mono" lg={10}>{blockInfo.verboseData.hash}
                                         <CopyButton text={blockInfo.verboseData.hash} />
-                                        <OverlayTrigger overlay={<Tooltip id="tooltip-kgi">Open in Spectre Graph Inspector</Tooltip>}>
-                                            <span>
-                                                <BiNetworkChart className="ms-2 copy-symbol" size="20" onClick={() => { window.open(`https://${kgiAddress}/?hash=${id}`, '_blank'); }} />
-                                            </span>
-                                        </OverlayTrigger>
                                     </Col>
                                     {/* {isBlue ? "BLUE" : "RED"} */}
                                 </Row>
