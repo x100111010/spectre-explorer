@@ -31,6 +31,7 @@ import PriceContext from "./components/PriceContext";
 import TransactionInfo from "./components/TransactionInfo";
 import TxPage from "./components/TxPage";
 import Dashboard from "./Dashboard";
+import CPUStats from "./components/cpustats";
 import { getBlock } from "./spectre-api-client";
 import { apiAddress } from "./addresses";
 
@@ -221,6 +222,15 @@ function App() {
                         Transactions
                       </NavLink>
                     </Nav.Item>
+                    <Nav.Item>
+                      <NavLink
+                        className="nav-link fs-5"
+                        onClick={closeMenuIfNeeded}
+                        to={"/cpustats"}
+                      >
+                        CPU Stats
+                      </NavLink>
+                    </Nav.Item>
                   </Nav>
                   <div className="ms-auto navbar-price">
                     ${price} <span className="text-light">/ SPR</span>
@@ -262,6 +272,7 @@ function App() {
               <Route path="/addresses/:addr" element={<AddressInfoPage />} />
               <Route path="/txs" element={<TxPage />} />
               <Route path="/txs/:id" element={<TransactionInfo />} />
+              <Route path="/cpustats" element={<CPUStats />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </div>
