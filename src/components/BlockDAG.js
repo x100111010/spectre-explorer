@@ -14,10 +14,39 @@ const BlockDAGBox = () => {
   const [maxHashrate, setMaxHashrate] = useState("");
   const [mempool, setMempool] = useState("");
 
+  // load cached data if available
+  const loadCachedData = () => {
+    const cachedDagInfo = localStorage.getItem("dag_info");
+    const cachedHashrateMax = localStorage.getItem("hashrate_max");
+    const cachedSpectredInfo = localStorage.getItem("spectred_info");
+
+    if (cachedDagInfo) {
+      const dag_info = JSON.parse(cachedDagInfo);
+      setNetworkName(dag_info.networkName);
+      setVirtualDaaScore(dag_info.virtualDaaScore);
+      setHashrate(((dag_info.difficulty * 2) / 1000000).toFixed(2));
+    }
+
+    if (cachedHashrateMax) {
+      const hashrateMax = JSON.parse(cachedHashrateMax);
+      setMaxHashrate(hashrateMax.hashrate);
+    }
+
+    if (cachedSpectredInfo) {
+      const spectredInfo = JSON.parse(cachedSpectredInfo);
+      setMempool(spectredInfo.mempoolSize);
+    }
+  };
+
   const initBox = async () => {
     const dag_info = await getBlockdagInfo();
     const hashrateMax = await getHashrateMax();
     const spectredInfo = await getSpectredInfo();
+
+    // cache in localStorage
+    localStorage.setItem("dag_info", JSON.stringify(dag_info));
+    localStorage.setItem("hashrate_max", JSON.stringify(hashrateMax));
+    localStorage.setItem("spectred_info", JSON.stringify(spectredInfo));
 
     setNetworkName(dag_info.networkName);
     setVirtualDaaScore(dag_info.virtualDaaScore);
@@ -27,13 +56,23 @@ const BlockDAGBox = () => {
   };
 
   useEffect(() => {
+    // init cache
+    loadCachedData();
+
+    // update from api
     initBox();
+
     const updateInterval = setInterval(async () => {
       const dag_info = await getBlockdagInfo();
+
+      // cache new dag_info and update state
+      localStorage.setItem("dag_info", JSON.stringify(dag_info));
+
       setNetworkName(dag_info.networkName);
       setVirtualDaaScore(dag_info.virtualDaaScore);
       setHashrate(((dag_info.difficulty * 2) / 1000000).toFixed(2));
     }, 60000);
+
     return async () => {
       clearInterval(updateInterval);
     };
