@@ -1,25 +1,22 @@
 import { faDiagramProject } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useEffect, useState } from "react";
-import { getBlockdagInfo } from "../spectre-api-client";
+import { getBlockdagInfo, getHashrateMax } from "../spectre-api-client";
 
 const BlockDAGBox = () => {
   const [networkName, setNetworkName] = useState("");
-  const [blockCount, setBlockCount] = useState();
-  const [headerCount, setHeaderCount] = useState("");
   const [virtualDaaScore, setVirtualDaaScore] = useState("");
   const [hashrate, setHashrate] = useState("");
+  const [maxHashrate, setMaxHashrate] = useState("");
 
   const initBox = async () => {
     const dag_info = await getBlockdagInfo();
-
-    console.log("DAG Info ", dag_info);
+    const hashrateMax = await getHashrateMax();
 
     setNetworkName(dag_info.networkName);
-    setBlockCount(dag_info.blockCount);
-    setHeaderCount(dag_info.headerCount);
     setVirtualDaaScore(dag_info.virtualDaaScore);
     setHashrate(((dag_info.difficulty * 2) / 1000000).toFixed(2));
+    setMaxHashrate(hashrateMax.hashrate);
   };
 
   useEffect(() => {
@@ -27,8 +24,6 @@ const BlockDAGBox = () => {
     const updateInterval = setInterval(async () => {
       const dag_info = await getBlockdagInfo();
       setNetworkName(dag_info.networkName);
-      setBlockCount(dag_info.blockCount);
-      setHeaderCount(dag_info.headerCount);
       setVirtualDaaScore(dag_info.virtualDaaScore);
       setHashrate(((dag_info.difficulty * 2) / 1000000).toFixed(2));
     }, 60000);
@@ -36,42 +31,6 @@ const BlockDAGBox = () => {
       clearInterval(updateInterval);
     };
   }, []);
-
-  useEffect(
-    (e) => {
-      document.getElementById("blockCount").animate(
-        [
-          // keyframes
-          { opacity: "1" },
-          { opacity: "0.6" },
-          { opacity: "1" },
-        ],
-        {
-          // timing options
-          duration: 300,
-        },
-      );
-    },
-    [blockCount],
-  );
-
-  useEffect(
-    (e) => {
-      document.getElementById("headerCount").animate(
-        [
-          // keyframes
-          { opacity: "1" },
-          { opacity: "0.6" },
-          { opacity: "1" },
-        ],
-        {
-          // timing options
-          duration: 300,
-        },
-      );
-    },
-    [headerCount],
-  );
 
   useEffect(
     (e) => {
@@ -133,18 +92,6 @@ const BlockDAGBox = () => {
             <td className="pt-1 text-nowrap">{networkName}</td>
           </tr>
           <tr>
-            <td className="cardBoxElement">Block count</td>
-            <td className="pt-1" id="blockCount">
-              {blockCount}
-            </td>
-          </tr>
-          <tr>
-            <td className="cardBoxElement">Header count</td>
-            <td className="pt-1" id="headerCount">
-              {headerCount}
-            </td>
-          </tr>
-          <tr>
             <td className="cardBoxElement">Virtual DAA Score</td>
             <td className="pt-1 align-top" id="virtualDaaScore">
               {virtualDaaScore}
@@ -154,6 +101,12 @@ const BlockDAGBox = () => {
             <td className="cardBoxElement">Hashrate</td>
             <td className="pt-1" id="hashrate">
               {hashrate} MH/s
+            </td>
+          </tr>
+          <tr>
+            <td className="cardBoxElement">Max Hashrate</td>
+            <td className="pt-1" id="hashrate">
+              {(maxHashrate * 1_000 * 1_000).toFixed(2)} MH/s
             </td>
           </tr>
         </table>
