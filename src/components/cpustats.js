@@ -30,7 +30,9 @@ const CPUStats = () => {
     const fetchNetworkInfo = async () => {
       try {
         const dag_info = await getBlockdagInfo();
-        const networkHashrate = ((dag_info.difficulty * 2) / 1_000_000).toFixed(2); // nethash; in MH/s
+        const networkHashrate = ((dag_info.difficulty * 2) / 1_000_000).toFixed(
+          2,
+        ); // nethash; in MH/s
 
         const blockRewardResponse = await fetch(
           `https://${apiAddress}/info/blockreward`,

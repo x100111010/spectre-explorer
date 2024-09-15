@@ -1,22 +1,29 @@
 import { faDiagramProject } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useEffect, useState } from "react";
-import { getBlockdagInfo, getHashrateMax } from "../spectre-api-client";
+import {
+  getBlockdagInfo,
+  getHashrateMax,
+  getSpectredInfo,
+} from "../spectre-api-client";
 
 const BlockDAGBox = () => {
   const [networkName, setNetworkName] = useState("");
   const [virtualDaaScore, setVirtualDaaScore] = useState("");
   const [hashrate, setHashrate] = useState("");
   const [maxHashrate, setMaxHashrate] = useState("");
+  const [mempool, setMempool] = useState("");
 
   const initBox = async () => {
     const dag_info = await getBlockdagInfo();
     const hashrateMax = await getHashrateMax();
+    const spectredInfo = await getSpectredInfo();
 
     setNetworkName(dag_info.networkName);
     setVirtualDaaScore(dag_info.virtualDaaScore);
     setHashrate(((dag_info.difficulty * 2) / 1000000).toFixed(2));
     setMaxHashrate(hashrateMax.hashrate);
+    setMempool(spectredInfo.mempoolSize);
   };
 
   useEffect(() => {
@@ -98,6 +105,12 @@ const BlockDAGBox = () => {
             </td>
           </tr>
           <tr>
+            <td className="cardBoxElement">Mempool count</td>
+            <td className="pt-1" id="mempool">
+              {mempool}
+            </td>
+          </tr>
+          <tr>
             <td className="cardBoxElement">Hashrate</td>
             <td className="pt-1" id="hashrate">
               {hashrate} MH/s
@@ -105,7 +118,7 @@ const BlockDAGBox = () => {
           </tr>
           <tr>
             <td className="cardBoxElement">Max Hashrate</td>
-            <td className="pt-1" id="hashrate">
+            <td className="pt-1" id="maxHashrate">
               {(maxHashrate * 1_000 * 1_000).toFixed(2)} MH/s
             </td>
           </tr>
