@@ -1,5 +1,7 @@
 import moment from "moment";
 import { useContext, useEffect, useRef, useState } from "react";
+import { OverlayTrigger, Tooltip } from "react-bootstrap";
+import { BiHide } from "react-icons/bi";
 import { FaDiceD20, FaPause, FaPlay } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import LastBlocksContext from "./LastBlocksContext";
@@ -10,12 +12,13 @@ const BlockOverview = (props) => {
   const { blocks, isConnected } = useContext(LastBlocksContext);
   const [tempBlocks, setTempBlocks] = useState([]);
   const [keepUpdating, setKeepUpdating] = useState(true);
+  const [showBlueScore, setShowBlueScore] = useState(true);
 
   const keepUpdatingRef = useRef();
   keepUpdatingRef.current = keepUpdating;
 
   const onClickRow = (e) => {
-    navigate(`/blocks/${e.target.parentElement.id}`);
+    navigate(`/blocks/${e.target.closest("tr").id}`);
   };
 
   useEffect(() => {
@@ -23,6 +26,10 @@ const BlockOverview = (props) => {
       setTempBlocks(blocks);
     }
   }, [blocks]);
+
+  const toggleBlueScore = () => {
+    setShowBlueScore(!showBlueScore);
+  };
 
   return (
     <div className="block-overview">
@@ -40,6 +47,22 @@ const BlockOverview = (props) => {
             onClick={() => setKeepUpdating(false)}
           />
         )}
+
+        <OverlayTrigger
+          overlay={
+            <Tooltip>{showBlueScore ? "Hide" : "Show"} BlueScore</Tooltip>
+          }
+        >
+          <span>
+            <BiHide
+              className={`mx-0 mt-3 hide-button ${
+                !showBlueScore && "hide-button-active"
+              }`}
+              onClick={toggleBlueScore}
+            />
+          </span>
+        </OverlayTrigger>
+
         <h4 className="block-overview-header text-center w-100 me-4">
           <FaDiceD20
             className={isConnected && keepUpdating ? "rotate" : ""}
@@ -54,7 +77,7 @@ const BlockOverview = (props) => {
           <thead>
             <tr>
               <th>Timestamp</th>
-              {props.small ? <></> : <th>BlueScore</th>}
+              {showBlueScore && <th>BlueScore</th>}
               <th>TXs</th>
               <th width="100%">Hash</th>
             </tr>
@@ -70,7 +93,7 @@ const BlockOverview = (props) => {
                       "YYYY‑MM‑DD HH:mm:ss",
                     )}
                   </td>
-                  {props.small ? <></> : <td>{x.blueScore}</td>}
+                  {showBlueScore && <td>{x.blueScore}</td>}
                   <td>{x.txCount}</td>
                   <td className="hashh">{x.block_hash}</td>
                 </tr>
