@@ -14,39 +14,72 @@ const CBox = () => {
 
   useEffect(() => {
     const initBox = async () => {
+      if (localStorage.getItem("cacheCircCoins")) {
+        setCircCoins(localStorage.getItem("cacheCircCoins"));
+      }
+
+      if (localStorage.getItem("cacheBlockReward")) {
+        setBlockReward(localStorage.getItem("cacheBlockReward"));
+      }
+
+      if (localStorage.getItem("cacheHalvingDate")) {
+        setHalvingDate(localStorage.getItem("cacheHalvingDate"));
+      }
+
+      if (localStorage.getItem("cacheHalvingAmount")) {
+        setHalvingAmount(localStorage.getItem("cacheHalvingAmount"));
+      }
+
       const coinSupplyResp = await getCoinSupply();
-      getBlockReward();
+
+      const getBlockReward = async () => {
+        await fetch(`https://${apiAddress}/info/blockreward`)
+          .then((response) => response.json())
+          .then((d) => {
+            const blockRewardValue = d.blockreward.toFixed(2);
+            setBlockReward(blockRewardValue);
+            localStorage.setItem("cacheBlockReward", blockRewardValue);
+          })
+          .catch((err) => console.log("Error", err));
+      };
+
+      await getBlockReward();
 
       getHalving().then((d) => {
-        setHalvingDate(
-          moment(d.nextHalvingTimestamp * 1000).format("YYYY-MM-DD HH:mm"),
-        );
-        setHalvingAmount(d.nextHalvingAmount.toFixed(2));
+        const halvingDateFormatted = moment(
+          d.nextHalvingTimestamp * 1000,
+        ).format("YYYY-MM-DD HH:mm");
+        const halvingAmountFormatted = d.nextHalvingAmount.toFixed(2);
+
+        setHalvingDate(halvingDateFormatted);
+        setHalvingAmount(halvingAmountFormatted);
+
+        localStorage.setItem("cacheHalvingDate", halvingDateFormatted);
+        localStorage.setItem("cacheHalvingAmount", halvingAmountFormatted);
       });
 
-      setCircCoins(Math.round(coinSupplyResp.circulatingSupply / 100000000));
+      const circCoinsValue = Math.round(
+        coinSupplyResp.circulatingSupply / 100000000,
+      );
+      setCircCoins(circCoinsValue);
+      localStorage.setItem("cacheCircCoins", circCoinsValue);
     };
 
     initBox();
 
     const updateCircCoins = setInterval(async () => {
       const coinSupplyResp = await getCoinSupply();
-      setCircCoins(Math.round(coinSupplyResp.circulatingSupply / 100000000));
-    }, 10000);
+      const circCoinsValue = Math.round(
+        coinSupplyResp.circulatingSupply / 100000000,
+      );
+      setCircCoins(circCoinsValue);
+      localStorage.setItem("cacheCircCoins", circCoinsValue);
+    }, 60000);
 
     return () => {
       clearInterval(updateCircCoins);
     };
   }, []);
-
-  async function getBlockReward() {
-    await fetch(`https://${apiAddress}/info/blockreward`)
-      .then((response) => response.json())
-      .then((d) => {
-        setBlockReward(d.blockreward.toFixed(2));
-      })
-      .catch((err) => console.log("Error", err));
-  }
 
   useEffect(() => {
     document.getElementById("coins").animate(
