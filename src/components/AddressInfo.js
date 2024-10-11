@@ -89,20 +89,12 @@ const AddressInfo = () => {
     e.preventDefault();
   };
 
-  const getAddrFromOutputs = (outputs, i) => {
-    for (const o of outputs) {
-      if (o.index === i) {
-        return o.script_public_key_address;
-      }
-    }
+  const getAddrFromOutputs = (outputs, index) => {
+    return outputs?.[index]?.script_public_key_address;
   };
 
-  const getAmountFromOutputs = (outputs, i) => {
-    for (const o of outputs) {
-      if (o.index === i) {
-        return o.amount / 100000000;
-      }
-    }
+  const getAmountFromOutputs = (outputs, index) => {
+    return outputs?.[index]?.amount / 100000000;
   };
 
   const getAmount = (outputs, inputs) => {
@@ -122,7 +114,7 @@ const AddressInfo = () => {
         balance =
           balance -
           getAmountFromOutputs(
-            txsInpCache[i.previous_outpoint_hash]["outputs"],
+            txsInpCache[i.previous_outpoint_hash]?.outputs,
             i.previous_outpoint_index,
           );
       }
@@ -357,7 +349,6 @@ const AddressInfo = () => {
           </Col>
         </Row>
       </Container>
-
       {view === "transactions" && (
         <Container className="webpage addressinfo-box mt-4" fluid>
           <Row className="border-bottom border-bottom-1">
@@ -403,18 +394,15 @@ const AddressInfo = () => {
           {!loadingTxs ? (
             <>
               {txs.map((x) => (
-                <>
-                  <Row
-                    className="utxo-value text-primary mt-3"
-                    key={x.transaction_id}
-                  >
+                <div key={x.transaction_id}>
+                  <Row className="utxo-value text-primary mt-3">
                     <Col sm={7} md={7}>
                       {moment(x.block_time).format("YYYY-MM-DD HH:mm:ss")}
                     </Col>
                   </Row>
                   <Row className="pb-4 mb-0">
                     <Col sm={12} md={7}>
-                      <div className="utxo-header mt-3">transaction id</div>
+                      <div className="utxo-header mt-3">Transaction ID</div>
                       <div className="utxo-value-mono">
                         <Link
                           className="blockinfo-link"
@@ -425,7 +413,7 @@ const AddressInfo = () => {
                       </div>
                     </Col>
                     <Col sm={6} md={3}>
-                      <div className="utxo-header mt-3">amount</div>
+                      <div className="utxo-header mt-3">Amount</div>
                       <div className="utxo-value">
                         <Link
                           className="blockinfo-link"
@@ -451,12 +439,12 @@ const AddressInfo = () => {
                       </div>
                     </Col>
                     <Col sm={6} md={2}>
-                      <div className="utxo-header mt-3">value</div>
+                      <div className="utxo-header mt-3">Value</div>
                       <div className="utxo-value">
                         {numberWithCommas(
                           (getAmount(x.outputs, x.inputs) * price).toFixed(2),
                         )}{" "}
-                        $
+                        USD
                       </div>
                     </Col>
                   </Row>
@@ -470,8 +458,18 @@ const AddressInfo = () => {
                         >
                           {x.inputs?.length > 0
                             ? x.inputs.map((i) => {
-                                return txsInpCache &&
-                                  txsInpCache[i.previous_outpoint_hash] ? (
+                                const inputOutputs =
+                                  txsInpCache[i.previous_outpoint_hash]
+                                    ?.outputs || [];
+                                const address = getAddrFromOutputs(
+                                  inputOutputs,
+                                  i.previous_outpoint_index,
+                                );
+                                const amount = getAmountFromOutputs(
+                                  inputOutputs,
+                                  i.previous_outpoint_index,
+                                );
+                                return address ? (
                                   <Row
                                     id={`N${i.previous_outpoint_hash}${i.previous_outpoint_index}`}
                                     key={`${i.previous_outpoint_hash}${i.previous_outpoint_index}`}
@@ -482,40 +480,22 @@ const AddressInfo = () => {
                                     >
                                       <Link
                                         className="blockinfo-link"
-                                        to={`/addresses/${getAddrFromOutputs(txsInpCache[i.previous_outpoint_hash]["outputs"], i.previous_outpoint_index)}`}
+                                        to={`/addresses/${address}`}
                                       >
                                         <span
                                           className={
-                                            getAddrFromOutputs(
-                                              txsInpCache[
-                                                i.previous_outpoint_hash
-                                              ]["outputs"],
-                                              i.previous_outpoint_index,
-                                            ) === addr
+                                            address === addr
                                               ? "highlight-addr"
                                               : ""
                                           }
                                         >
-                                          {getAddrFromOutputs(
-                                            txsInpCache[
-                                              i.previous_outpoint_hash
-                                            ]["outputs"],
-                                            i.previous_outpoint_index,
-                                          )}
+                                          {address}
                                         </span>
                                       </Link>
                                     </Col>
                                     <Col xs={5}>
                                       <span className="block-utxo-amount-minus">
-                                        -
-                                        {numberWithCommas(
-                                          getAmountFromOutputs(
-                                            txsInpCache[
-                                              i.previous_outpoint_hash
-                                            ]["outputs"],
-                                            i.previous_outpoint_index,
-                                          ),
-                                        )}
+                                        -{numberWithCommas(amount)}
                                         &nbsp;SPR
                                       </span>
                                     </Col>
@@ -608,7 +588,7 @@ const AddressInfo = () => {
                       </Col>
                     </Row>
                   )}
-                </>
+                </div>
               ))}
               <Row>
                 <Col
@@ -652,6 +632,7 @@ const AddressInfo = () => {
           )}
         </Container>
       )}
+
       {view === "utxos" && (
         <Container className="webpage addressinfo-box mt-4" fluid>
           <Row className="border-bottom border-bottom-1">
