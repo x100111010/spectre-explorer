@@ -1,6 +1,6 @@
 import "bootstrap/dist/css/bootstrap.min.css";
 import "font-awesome/css/font-awesome.min.css";
-import { useContext, useState, useEffect } from "react";
+import { useContext, useState, useEffect, useRef } from "react";
 import {
   Button,
   Col,
@@ -37,32 +37,34 @@ function Dashboard() {
 
   const [ghostDAG, setGhostDAG] = useState([]);
 
-  const getDAGData = async (lastBlocks) => {
-    let verboseBlocks = [];
-    for (let i = 0; i < lastBlocks.length; i++) {
-      try {
-        const block = await getBlock(lastBlocks[i].block_hash);
-        verboseBlocks.push(block);
-      } catch (error) {
-        console.error(
-          `Error fetching block ${lastBlocks[i].block_hash}:`,
-          error,
-        );
-      }
+  const ghostDAGRef = useRef(ghostDAG);
+
+  const getDAGData = async (newBlock) => {
+    try {
+      const block = await getBlock(newBlock.block_hash);
+      const parsedBlock = {
+        id: block.verboseData.hash,
+        isChain: block.verboseData.isChainBlock,
+        blueparents: block.verboseData.mergeSetBluesHashes || [],
+        redparents: block.verboseData.mergeSetRedsHashes || [],
+      };
+
+      // update with new block
+      setGhostDAG((prevGhostDAG) => {
+        const updatedGhostDAG = [...prevGhostDAG, parsedBlock].slice(-50); // cache
+        ghostDAGRef.current = updatedGhostDAG;
+        return updatedGhostDAG;
+      });
+    } catch (error) {
+      console.error(`Error fetching block ${newBlock.block_hash}:`, error);
     }
-    console.log(verboseBlocks);
-    let blocks = verboseBlocks.map((block) => ({
-      id: block.verboseData.hash,
-      isChain: block.verboseData.isChainBlock,
-      blueparents: block.verboseData.mergeSetBluesHashes || [],
-      redparents: block.verboseData.mergeSetRedsHashes || [],
-    }));
-    let ghostDAG = [...blocks];
-    setGhostDAG(ghostDAG.slice(-60));
   };
 
   useEffect(() => {
-    getDAGData(blocks);
+    if (blocks.length > 0) {
+      const latestBlock = blocks[blocks.length - 1];
+      getDAGData(latestBlock);
+    }
   }, [blocks]);
 
   const search = (e) => {
