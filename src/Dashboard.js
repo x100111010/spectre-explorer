@@ -28,7 +28,7 @@ function Dashboard() {
   const navigate = useNavigate();
 
   const handleClose = () => setShow(false);
-  const { blocks, isConnected } = useContext(LastBlocksContext);
+  const { blocks } = useContext(LastBlocksContext);
 
   const [showLoadingModal, setShowLoadingModal] = useState(false);
 

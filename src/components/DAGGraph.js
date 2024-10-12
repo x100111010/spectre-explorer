@@ -9,34 +9,50 @@ const DAGGraph = ({ data, maxVisibleBlocks = 40 }) => {
 
   useEffect(() => {
     // calc visible blocks dynamically based on the screen width
-    const screenBlockLimit = Math.floor(window.innerWidth / 60);
+    const screenBlockLimit = Math.floor(window.innerWidth / 70); // may need some adjustment
     const visibleBlockCount = Math.min(maxVisibleBlocks, screenBlockLimit);
     const visibleBlocks = data.slice(-visibleBlockCount);
 
     // prepare nodes
     const nodes = visibleBlocks.map((block) => ({
       id: block.id,
-      label: `${block.id.substring(0, 9)}...`, // block hash
+      label: `${block.id.substring(0, 9)}...`, // blockhash length
       shape: "box",
       color: {
-        background: block.isChain ? "#e6e8ec" : "#ff005a",
+        background: block.isChain ? "#e6e8ec" : "#ff005a", // gray for chained, red for non-chained
         border: "#000",
       },
     }));
 
     // prepare edges
-    const edges = visibleBlocks.flatMap((block) =>
-      block.blueparents
+    const edges = visibleBlocks.flatMap((block) => {
+      // edges/arrows for blueparents
+      const blueEdges = block.blueparents
         ? block.blueparents
             .filter((parentId) => visibleBlocks.some((b) => b.id === parentId))
             .map((parentId) => ({
               from: parentId,
               to: block.id,
               arrows: "to",
-              color: "#e6e8ec",
+              color: "#5581aa", // blue merge set
             }))
-        : [],
-    );
+        : [];
+
+      // edges/arrows for redparents
+      const redEdges = block.redparents
+        ? block.redparents
+            .filter((parentId) => visibleBlocks.some((b) => b.id === parentId))
+            .map((parentId) => ({
+              from: parentId,
+              to: block.id,
+              arrows: "to",
+              color: "#ff005a", // red merge set
+            }))
+        : [];
+
+      // return blue and red edges
+      return [...blueEdges, ...redEdges];
+    });
 
     const dataSet = { nodes, edges };
 

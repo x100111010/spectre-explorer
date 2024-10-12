@@ -1,7 +1,7 @@
 /* global BigInt */
 
 import moment from "moment";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useRef, useState, useMemo } from "react";
 import {
   Col,
   Container,
@@ -10,14 +10,14 @@ import {
   Spinner,
   Tooltip,
 } from "react-bootstrap";
-import { useParams } from "react-router";
-import { Link } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import { parsePayload } from "../bech32.js";
 import { numberWithCommas } from "../helper.js";
 import { getBlock, getTransactions } from "../spectre-api-client.js";
 import BlueScoreContext from "./BlueScoreContext.js";
 import CopyButton from "./CopyButton.js";
 import PriceContext from "./PriceContext.js";
+import { Network } from "vis-network/standalone";
 
 const BlockLamp = (props) => {
   return (
@@ -46,6 +46,63 @@ const getAmountFromOutputs = (outputs, i) => {
   }
 };
 
+// create nodes for DAG graph
+const createNodes = (blocks) => {
+  return blocks.map((block) => ({
+    id: block.id,
+    label: `${block.id.substring(0, 9)}...`, // blockhash length
+    shape: "box",
+    color: {
+      background: block.isChain ? "#e6e8ec" : "#ff005a", // gray for chained, red for non-chained
+      border: "#000",
+    },
+  }));
+};
+
+// create edges for DAG graph
+const createEdges = (blocks) => {
+  return blocks.flatMap((block) => {
+    // edges/arrows for blueparents
+    const blueEdges = block.blueparents
+      ? block.blueparents
+          .filter((parentId) => blocks.some((b) => b.id === parentId))
+          .map((parentId) => ({
+            from: parentId,
+            to: block.id,
+            arrows: "to",
+            color: "#5581aa", // blue merge set
+          }))
+      : [];
+
+    // edges/arrows for redparents
+    const redEdges = block.redparents
+      ? block.redparents
+          .filter((parentId) => blocks.some((b) => b.id === parentId))
+          .map((parentId) => ({
+            from: parentId,
+            to: block.id,
+            arrows: "to",
+            color: "#ff005a", // red merge set
+          }))
+      : [];
+
+    // edges/arrows for children
+    const childrenEdges = block.childrenHashes
+      ? block.childrenHashes
+          .filter((childId) => blocks.some((b) => b.id === childId))
+          .map((childId) => ({
+            from: block.id,
+            to: childId,
+            arrows: "to",
+            color: "#fcfcfc", // color for child
+          }))
+      : [];
+
+    // return blue, red, and children edges
+    return [...blueEdges, ...redEdges, ...childrenEdges];
+  });
+};
+
 const BlockInfo = () => {
   const { id } = useParams();
   const { blueScore } = useContext(BlueScoreContext);
@@ -56,6 +113,8 @@ const BlockInfo = () => {
   const [isBlueBlock, setIsBlueBlock] = useState(null);
   const [error, setError] = useState(false);
   const { price } = useContext(PriceContext);
+  const containerRef = useRef(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     setError(false);
@@ -126,6 +185,95 @@ const BlockInfo = () => {
       setMinerAddress(address);
     }
   }, [blockInfo]);
+
+  // DAG data for graph visualization
+  const dagData = useMemo(() => {
+    return blockInfo
+      ? [
+          {
+            id: blockInfo.verboseData.hash,
+            isChain: blockInfo.verboseData.isChainBlock,
+            blueparents: blockInfo.verboseData.mergeSetBluesHashes || [],
+            redparents: blockInfo.verboseData.mergeSetRedsHashes || [],
+            childrenHashes: blockInfo.verboseData.childrenHashes || [],
+          },
+          ...(blockInfo.header?.parents?.[0]?.parentHashes || []).map(
+            (parentId) => ({
+              id: parentId,
+              isChain: null,
+              blueparents: [],
+              redparents: [],
+              childrenHashes: [],
+            }),
+          ),
+          ...(blockInfo.verboseData.childrenHashes || []).map((childId) => ({
+            id: childId,
+            isChain: null,
+            blueparents: [],
+            redparents: [],
+            childrenHashes: [],
+          })),
+        ]
+      : [];
+  }, [blockInfo]);
+
+  // static DAG graph
+  useEffect(() => {
+    if (dagData.length > 0 && containerRef.current) {
+      const nodes = createNodes(dagData);
+      const edges = createEdges(dagData);
+
+      const dataSet = { nodes, edges };
+      const options = {
+        layout: {
+          hierarchical: {
+            direction: "LR",
+            sortMethod: "directed",
+            nodeSpacing: 100,
+            levelSeparation: 150,
+          },
+        },
+        interaction: {
+          dragNodes: false,
+          zoomView: false,
+          dragView: false,
+        },
+        physics: {
+          enabled: false, // prevent movement
+        },
+        nodes: {
+          borderWidth: 1,
+          shape: "box",
+          font: {
+            size: 14,
+            face: "monospace",
+            align: "center",
+            color: "#000000",
+          },
+          widthConstraint: 50,
+          heightConstraint: 50,
+        },
+        edges: {
+          color: "#116466",
+          arrows: { to: { enabled: true, type: "arrow" } },
+          smooth: {
+            type: "cubicBezier",
+            forceDirection: "horizontal",
+            roundness: 0.5,
+          },
+        },
+      };
+
+      const network = new Network(containerRef.current, dataSet, options);
+
+      network.on("click", (params) => {
+        if (params.nodes.length > 0) {
+          const blockHash = params.nodes[0];
+          navigate(`/blocks/${blockHash}`);
+        }
+      });
+    }
+  }, [dagData, navigate]);
 
   return (
     <div className="blockinfo-page">
@@ -239,6 +387,11 @@ const BlockInfo = () => {
                           ),
                         )}
                       </ul>
+                    </Col>
+                  </Row>
+                  <Row className="blockinfo-row">
+                    <Col lg={12}>
+                      <div ref={containerRef} style={{ height: "300px" }} />
                     </Col>
                   </Row>
                   <Row className="blockinfo-row">
