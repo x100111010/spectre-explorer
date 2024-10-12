@@ -1,6 +1,6 @@
 import "bootstrap/dist/css/bootstrap.min.css";
 import "font-awesome/css/font-awesome.min.css";
-import { useState } from "react";
+import { useContext, useState, useEffect } from "react";
 import {
   Button,
   Col,
@@ -19,6 +19,8 @@ import BlockOverview from "./components/BlockOverview";
 import CoinsupplyBox from "./components/CoinsupplyBox";
 import MarketDataBox from "./components/MarketDataBox";
 import TxOverview from "./components/TxOverview";
+import DAGGraph from "./components/DAGGraph";
+import LastBlocksContext from "./components/LastBlocksContext";
 import { getBlock } from "./spectre-api-client";
 
 function Dashboard() {
@@ -26,11 +28,42 @@ function Dashboard() {
   const navigate = useNavigate();
 
   const handleClose = () => setShow(false);
+  const { blocks, isConnected } = useContext(LastBlocksContext);
 
   const [showLoadingModal, setShowLoadingModal] = useState(false);
 
   const balance = useState(0);
   const address = useState("spectre:");
+
+  const [ghostDAG, setGhostDAG] = useState([]);
+
+  const getDAGData = async (lastBlocks) => {
+    let verboseBlocks = [];
+    for (let i = 0; i < lastBlocks.length; i++) {
+      try {
+        const block = await getBlock(lastBlocks[i].block_hash);
+        verboseBlocks.push(block);
+      } catch (error) {
+        console.error(
+          `Error fetching block ${lastBlocks[i].block_hash}:`,
+          error,
+        );
+      }
+    }
+    console.log(verboseBlocks);
+    let blocks = verboseBlocks.map((block) => ({
+      id: block.verboseData.hash,
+      isChain: block.verboseData.isChainBlock,
+      blueparents: block.verboseData.mergeSetBluesHashes || [],
+      redparents: block.verboseData.mergeSetRedsHashes || [],
+    }));
+    let ghostDAG = [...blocks];
+    setGhostDAG(ghostDAG.slice(-60));
+  };
+
+  useEffect(() => {
+    getDAGData(blocks);
+  }, [blocks]);
 
   const search = (e) => {
     e.preventDefault();
@@ -59,7 +92,6 @@ function Dashboard() {
     setShowLoadingModal(false);
   };
 
-  //<Button variant="primary">Go!</Button>
   return (
     <div className="align-spectre-top">
       <Modal show={showLoadingModal} animation={false} centered>
@@ -133,13 +165,12 @@ function Dashboard() {
           </Row>
         </Container>
       </div>
-      {/* <div className="row3">
-        <Container className="thirdRow webpage" fluid>
-          <Row>
-            <Col xs={12}><BlockDagVisualization /></Col>
-          </Row>
+      {/* DAGGraph in its own container */}
+      <div className="row3">
+        <Container fluid>
+          <DAGGraph data={ghostDAG} />
         </Container>
-      </div> */}
+      </div>
       <div className="row4">
         <Container className="fourthRow webpage" fluid>
           <Row>

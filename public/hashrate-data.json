@@ -937,5 +937,19 @@
     "Power_at_wall": "",
     "OS": "Ubuntu 22.04",
     "Note": ""
+  },
+  {
+    "Miner": "TNN-miner v0.4.1-beta-1.0",
+    "KHs": "32.18",
+    "Cores": "12",
+    "Threads": "24",
+    "Brand": "AMD",
+    "Model": "7900X",
+    "RAM_size": "16GB",
+    "RAM_frequency": "4800MHz",
+    "Power_Reported": "90w",
+    "Power_at_wall": "129w",
+    "OS": "HiveOS",
+    "Note": "0.96V, 24 threads"
   }
 ]
