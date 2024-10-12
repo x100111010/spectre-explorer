@@ -50,7 +50,7 @@ const getAmountFromOutputs = (outputs, i) => {
 const createNodes = (blocks) => {
   return blocks.map((block) => ({
     id: block.id,
-    label: `${block.id.substring(0, 9)}...`, // blockhash length
+    label: `${block.id.substring(0, 20)}`, // blockhash length
     shape: "box",
     color: {
       background: block.isChain ? "#e6e8ec" : "#ff005a", // gray for chained, red for non-chained
