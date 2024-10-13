@@ -50,7 +50,7 @@ const getAmountFromOutputs = (outputs, i) => {
 const createNodes = (blocks) => {
   return blocks.map((block) => ({
     id: block.id,
-    label: `${block.id.substring(0, 9)}...`, // blockhash length
+    label: `${block.id.substring(0, 20)}`, // blockhash length
     shape: "box",
     color: {
       background: block.isChain ? "#e6e8ec" : "#ff005a", // gray for chained, red for non-chained
@@ -137,24 +137,24 @@ const BlockInfo = () => {
         while (childListGlob.length > 0) {
           const hash = childListGlob.shift();
           const block = await getBlock(hash);
-          if (block.verboseData.isChainBlock) {
-            return block.verboseData.mergeSetBluesHashes.includes(
-              blockInfo.verboseData.hash,
+          if (block?.verboseData?.isChainBlock) {
+            return block.verboseData.mergeSetBluesHashes?.includes(
+              blockInfo?.verboseData?.hash,
             );
           } else {
             // console.log("PUSH", block.verboseData.childrenHashes)
-            childListGlob.push(block.verbosedata.childrenHashes);
+            childListGlob.push(...(block?.verboseData?.childrenHashes || []));
           }
         }
       }
 
-      isBlueBlock([...(blockInfo.verboseData.childrenHashes || [])])
+      isBlueBlock([...(blockInfo?.verboseData?.childrenHashes || [])])
         .then((res) => setIsBlueBlock(res))
         .catch((err) => console.log("ERROR", err));
 
       let [address, miner] = ["No miner info", "No miner info"];
 
-      if (blockInfo.transactions[0]?.payload) {
+      if (blockInfo?.transactions?.[0]?.payload) {
         [address, miner] = parsePayload(blockInfo.transactions[0].payload);
       }
 

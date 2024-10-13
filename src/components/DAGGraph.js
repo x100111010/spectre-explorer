@@ -2,21 +2,21 @@ import React, { useEffect, useRef } from "react";
 import { Network } from "vis-network/standalone";
 import { useNavigate } from "react-router-dom";
 
-const DAGGraph = ({ data, maxVisibleBlocks = 40 }) => {
+const DAGGraph = ({ data, maxVisibleBlocks = 50 }) => {
   const containerRef = useRef(null);
   const networkRef = useRef(null);
   const navigate = useNavigate();
 
   useEffect(() => {
     // calc visible blocks dynamically based on the screen width
-    const screenBlockLimit = Math.floor(window.innerWidth / 70); // may need some adjustment
+    const screenBlockLimit = Math.floor(window.innerWidth / 90); // may need some adjustment
     const visibleBlockCount = Math.min(maxVisibleBlocks, screenBlockLimit);
     const visibleBlocks = data.slice(-visibleBlockCount);
 
     // prepare nodes
     const nodes = visibleBlocks.map((block) => ({
       id: block.id,
-      label: `${block.id.substring(0, 9)}...`, // blockhash length
+      label: `${block.id.substring(0, 22)}`, // blockhash length
       shape: "box",
       color: {
         background: block.isChain ? "#e6e8ec" : "#ff005a", // gray for chained, red for non-chained
@@ -85,8 +85,8 @@ const DAGGraph = ({ data, maxVisibleBlocks = 40 }) => {
           align: "center",
           color: "#000000",
         },
-        widthConstraint: 50,
-        heightConstraint: 50,
+        widthConstraint: 60,
+        heightConstraint: 60,
       },
       edges: {
         color: "#116466",
