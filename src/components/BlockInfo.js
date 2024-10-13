@@ -50,7 +50,7 @@ const getAmountFromOutputs = (outputs, i) => {
 const createNodes = (blocks) => {
   return blocks.map((block) => ({
     id: block.id,
-    label: `${block.id.substring(0, 20)}`, // blockhash length
+    label: `${block.id.slice(0, 4)}\n${block.id.slice(4, 8)}`, // 4x4
     shape: "box",
     color: {
       background: block.isChain ? "#e6e8ec" : "#ff005a", // gray for chained, red for non-chained
@@ -230,7 +230,7 @@ const BlockInfo = () => {
             direction: "LR",
             sortMethod: "directed",
             nodeSpacing: 100,
-            levelSeparation: 150,
+            levelSeparation: 120,
           },
         },
         interaction: {
@@ -245,13 +245,13 @@ const BlockInfo = () => {
           borderWidth: 1,
           shape: "box",
           font: {
-            size: 14,
+            size: 18,
             face: "monospace",
             align: "center",
             color: "#000000",
           },
-          widthConstraint: 50,
-          heightConstraint: 50,
+          widthConstraint: 60,
+          heightConstraint: 60,
         },
         edges: {
           color: "#116466",
