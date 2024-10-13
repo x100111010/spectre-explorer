@@ -1,5 +1,6 @@
 # Spectre Explorer
 
+[![Lint Check](https://github.com/spectre-project/spectre-explorer/actions/workflows/lint.yml/badge.svg)](https://github.com/spectre-project/spectre-explorer/actions/workflows/lint.yml)
 [![LICENSE](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/spectre-project/spectre-explorer/blob/main/LICENSE)
 
 This is a fork of Kaspa explorer used for the Spectre network project
