@@ -9,6 +9,21 @@ written in JS with React.JS library.
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
+## Features
+
+- Introduced DAG visualization using `vis-network`:
+
+  - Blocks/Nodes are color-coded:
+    - White ⚪: for blocks that are part of the Selected Parent Chain (SPC). These blocks are directly linked to their selected parents, eventually tracing back to the genesis block. They are considered part of the main consensus path in the DAG.
+    - Red 🔴: for blocks that are not part of the Selected Parent Chain (non-chained blocks). These blocks are valid within the DAG but do not belong to the SPC. They exist as alternative chains within the DAG, contributing to the structure but not directly influencing the main consensus path.
+
+  - Parent-child relationships between blocks are shown using edges (lines/arrows🏹 connecting blocks). These edges help visualize how blocks are related within the DAG:
+
+    - Blue 🔹: edges represent the relationship between a block and its blue merge set parent, which indicates that the block is part of the main blue chain in the DAG. This main chain includes both chained and non-chained blocks, all of which are considered honest and relevant to the consensus.
+    - Red 🔺: edges represent the connection between a block and its red merge set parent, which are blocks outside the main blue chain. These blocks are typically viewed as potential "attacker" blocks or blocks not part of the consensus, but they are still valid within the DAG. Red blocks are rare and do not influence the consensus chain directly.
+
+  - Clicking a block redirects to the BlockInfo page, which now also includes a static DAG graph
+
 ## Deployment
 
 For deploying the block explorer make sure that nodejs build
