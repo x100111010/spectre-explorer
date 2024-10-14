@@ -1,6 +1,6 @@
 import "bootstrap/dist/css/bootstrap.min.css";
 import "font-awesome/css/font-awesome.min.css";
-import { useContext, useState, useEffect, useRef } from "react";
+import { useContext, useState, useEffect, useRef, useCallback } from "react";
 import {
   Button,
   Col,
@@ -39,33 +39,58 @@ function Dashboard() {
 
   const ghostDAGRef = useRef(ghostDAG);
 
-  const getDAGData = async (newBlock) => {
-    try {
-      const block = await getBlock(newBlock.block_hash);
-      const parsedBlock = {
-        id: block.verboseData.hash,
-        isChain: block.verboseData.isChainBlock,
-        blueparents: block.verboseData.mergeSetBluesHashes || [],
-        redparents: block.verboseData.mergeSetRedsHashes || [],
-      };
+  const getDAGData = useCallback(
+    async (newBlock, retries = 5, delay = 1000, totalRetries = retries) => {
+      try {
+        const block = await getBlock(newBlock.block_hash);
+        // console.log("Block data:", block);
 
-      // update with new block
-      setGhostDAG((prevGhostDAG) => {
-        const updatedGhostDAG = [...prevGhostDAG, parsedBlock].slice(-50); // cache
-        ghostDAGRef.current = updatedGhostDAG;
-        return updatedGhostDAG;
-      });
-    } catch (error) {
-      console.error(`Error fetching block ${newBlock.block_hash}:`, error);
-    }
-  };
+        // number of retries
+        const retryCount = totalRetries - retries;
+        if (retryCount > 0) {
+          console.log(
+            `Successfully fetched block after ${retryCount} ${retryCount === 1 ? "retry" : "retries"}`,
+          );
+        }
+
+        const parsedBlock = {
+          id: block.verboseData.hash,
+          isChain: block.verboseData.isChainBlock,
+          blueparents: block.verboseData.mergeSetBluesHashes || [],
+          redparents: block.verboseData.mergeSetRedsHashes || [],
+        };
+
+        // update with new block
+        setGhostDAG((prevGhostDAG) => {
+          const updatedGhostDAG = [...prevGhostDAG, parsedBlock].slice(-50); // cache
+          ghostDAGRef.current = updatedGhostDAG;
+          return updatedGhostDAG;
+        });
+      } catch (error) {
+        console.error(`Error fetching block ${newBlock.block_hash}:`, error);
+
+        // exponential retry logic
+        if (retries > 0) {
+          console.log(`Retrying... attempts remaining: ${retries}`);
+          await new Promise((resolve) => setTimeout(resolve, delay));
+          return getDAGData(newBlock, retries - 1, delay * 2, totalRetries);
+        } else {
+          console.error(
+            `Failed to fetch block after multiple attempts:`,
+            error,
+          );
+        }
+      }
+    },
+    [setGhostDAG],
+  );
 
   useEffect(() => {
     if (blocks && blocks.length > 0) {
       const latestBlock = blocks[blocks.length - 1];
       getDAGData(latestBlock);
     }
-  }, [blocks]);
+  }, [blocks, getDAGData]);
 
   const search = (e) => {
     e.preventDefault();
