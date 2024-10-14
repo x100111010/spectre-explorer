@@ -61,7 +61,7 @@ function Dashboard() {
   };
 
   useEffect(() => {
-    if (blocks.length > 0) {
+    if (blocks && blocks.length > 0) {
       const latestBlock = blocks[blocks.length - 1];
       getDAGData(latestBlock);
     }

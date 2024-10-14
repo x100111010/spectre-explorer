@@ -9,14 +9,14 @@ const DAGGraph = ({ data, maxVisibleBlocks = 50 }) => {
 
   useEffect(() => {
     // calc visible blocks dynamically based on the screen width
-    const screenBlockLimit = Math.floor(window.innerWidth / 90); // may need some adjustment
+    const screenBlockLimit = Math.floor(window.innerWidth / 80); // may need some adjustment
     const visibleBlockCount = Math.min(maxVisibleBlocks, screenBlockLimit);
     const visibleBlocks = data.slice(-visibleBlockCount);
 
     // prepare nodes
     const nodes = visibleBlocks.map((block) => ({
       id: block.id,
-      label: `${block.id.substring(0, 22)}`, // blockhash length
+      label: `${block.id.slice(0, 4)}\n${block.id.slice(4, 8)}`, // 4x4
       shape: "box",
       color: {
         background: block.isChain ? "#e6e8ec" : "#ff005a", // gray for chained, red for non-chained
@@ -62,7 +62,7 @@ const DAGGraph = ({ data, maxVisibleBlocks = 50 }) => {
           direction: "LR",
           sortMethod: "directed",
           nodeSpacing: 100,
-          levelSeparation: 150,
+          levelSeparation: 120,
         },
       },
       interaction: {
@@ -80,7 +80,7 @@ const DAGGraph = ({ data, maxVisibleBlocks = 50 }) => {
         borderWidth: 1,
         shape: "box",
         font: {
-          size: 14,
+          size: 18,
           face: "monospace",
           align: "center",
           color: "#000000",
