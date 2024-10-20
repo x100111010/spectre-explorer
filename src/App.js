@@ -80,11 +80,9 @@ function App() {
             navigate(`/blocks/${v}`);
           }
         })
-        .catch((err) => {
-          console.log("hier");
-        });
+        .catch((err) => {});
     }
-    if (v.startsWith("spectre:")) {
+    if (v.startsWith("spectre:") || v.startsWith("spectretest:")) {
       navigate(`/addresses/${v}`);
     }
 
