@@ -33,7 +33,7 @@ function Dashboard() {
   const [showLoadingModal, setShowLoadingModal] = useState(false);
 
   const balance = useState(0);
-  const address = useState("spectre:");
+  const address = useState("");
 
   const [ghostDAG, setGhostDAG] = useState([]);
 
@@ -107,12 +107,10 @@ function Dashboard() {
             navigate(`/blocks/${v}`);
           }
         })
-        .catch((err) => {
-          console.log("hier");
-        });
+        .catch((err) => {});
     }
 
-    if (v.startsWith("spectre:")) {
+    if (v.startsWith("spectre:") || v.startsWith("spectretest:")) {
       navigate(`/addresses/${v}`);
     }
 

@@ -1,6 +1,6 @@
 import { faDiagramProject } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import {
   getBlockdagInfo,
   getHashrateMax,
@@ -14,8 +14,26 @@ const BlockDAGBox = () => {
   const [maxHashrate, setMaxHashrate] = useState("");
   const [mempool, setMempool] = useState("");
 
+  const formatHashrateValue = (hashrateInHashesPerSecond, decimals) => {
+    let hashrateValue = hashrateInHashesPerSecond;
+    let unit = "H/s"; // default H/s
+
+    if (hashrateValue >= 1e9) {
+      hashrateValue = hashrateValue / 1e9;
+      unit = "GH/s";
+    } else if (hashrateValue >= 1e6) {
+      hashrateValue = hashrateValue / 1e6;
+      unit = "MH/s";
+    } else if (hashrateValue >= 1e3) {
+      hashrateValue = hashrateValue / 1e3;
+      unit = "KH/s";
+    }
+
+    return `${hashrateValue.toFixed(decimals)} ${unit}`;
+  };
+
   // load cached data if available
-  const loadCachedData = () => {
+  const loadCachedData = useCallback(() => {
     const cachedDagInfo = localStorage.getItem("dag_info");
     const cachedHashrateMax = localStorage.getItem("hashrate_max");
     const cachedSpectredInfo = localStorage.getItem("spectred_info");
@@ -24,21 +42,23 @@ const BlockDAGBox = () => {
       const dag_info = JSON.parse(cachedDagInfo);
       setNetworkName(dag_info.networkName);
       setVirtualDaaScore(dag_info.virtualDaaScore);
-      setHashrate(((dag_info.difficulty * 2) / 1000000).toFixed(2));
+      const hashrateInHashesPerSecond = dag_info.difficulty * 2;
+      setHashrate(formatHashrateValue(hashrateInHashesPerSecond, 2));
     }
 
     if (cachedHashrateMax) {
       const hashrateMax = JSON.parse(cachedHashrateMax);
-      setMaxHashrate(hashrateMax.hashrate);
+      const maxHashrateInHashesPerSecond = hashrateMax.hashrate * 1e12; // getHashrateMax TH/s -> H/s
+      setMaxHashrate(formatHashrateValue(maxHashrateInHashesPerSecond, 2));
     }
 
     if (cachedSpectredInfo) {
       const spectredInfo = JSON.parse(cachedSpectredInfo);
       setMempool(spectredInfo.mempoolSize);
     }
-  };
+  }, []);
 
-  const initBox = async () => {
+  const initBox = useCallback(async () => {
     const dag_info = await getBlockdagInfo();
     const hashrateMax = await getHashrateMax();
     const spectredInfo = await getSpectredInfo();
@@ -50,10 +70,15 @@ const BlockDAGBox = () => {
 
     setNetworkName(dag_info.networkName);
     setVirtualDaaScore(dag_info.virtualDaaScore);
-    setHashrate(((dag_info.difficulty * 2) / 1000000).toFixed(2));
-    setMaxHashrate(hashrateMax.hashrate);
+
+    const hashrateInHashesPerSecond = dag_info.difficulty * 2;
+    setHashrate(formatHashrateValue(hashrateInHashesPerSecond, 2));
+
+    const maxHashrateInHashesPerSecond = hashrateMax.hashrate * 1e12;
+    setMaxHashrate(formatHashrateValue(maxHashrateInHashesPerSecond, 2));
+
     setMempool(spectredInfo.mempoolSize);
-  };
+  }, []);
 
   useEffect(() => {
     // init cache
@@ -64,19 +89,26 @@ const BlockDAGBox = () => {
 
     const updateInterval = setInterval(async () => {
       const dag_info = await getBlockdagInfo();
+      const hashrateMax = await getHashrateMax();
 
       // cache new dag_info and update state
       localStorage.setItem("dag_info", JSON.stringify(dag_info));
+      localStorage.setItem("hashrate_max", JSON.stringify(hashrateMax));
 
       setNetworkName(dag_info.networkName);
       setVirtualDaaScore(dag_info.virtualDaaScore);
-      setHashrate(((dag_info.difficulty * 2) / 1000000).toFixed(2));
+
+      const hashrateInHashesPerSecond = dag_info.difficulty * 2;
+      setHashrate(formatHashrateValue(hashrateInHashesPerSecond, 2));
+
+      const maxHashrateInHashesPerSecond = hashrateMax.hashrate * 1e12;
+      setMaxHashrate(formatHashrateValue(maxHashrateInHashesPerSecond, 2));
     }, 60000);
 
     return async () => {
       clearInterval(updateInterval);
     };
-  }, []);
+  }, [loadCachedData, initBox]);
 
   useEffect(
     (e) => {
@@ -152,13 +184,13 @@ const BlockDAGBox = () => {
           <tr>
             <td className="cardBoxElement">Hashrate</td>
             <td className="pt-1" id="hashrate">
-              {hashrate} MH/s
+              {hashrate}
             </td>
           </tr>
           <tr>
             <td className="cardBoxElement">Max Hashrate</td>
             <td className="pt-1" id="maxHashrate">
-              {(maxHashrate * 1_000 * 1_000).toFixed(2)} MH/s
+              {maxHashrate}
             </td>
           </tr>
         </table>

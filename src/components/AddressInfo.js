@@ -269,8 +269,13 @@ const AddressInfo = () => {
           <Col md={12} className="mt-sm-4">
             <div className="addressinfo-header">Address</div>
             <div className="utxo-value-mono">
-              <span className="addressinfo-color">spectre:</span>
-              {addr.substring(8, addr.length - 8)}
+              <span className="addressinfo-color">
+                {addr.startsWith("spectre:") ? "spectre:" : "spectretest:"}
+              </span>
+              {addr.substring(
+                addr.startsWith("spectre:") ? 8 : 12,
+                addr.length - 8,
+              )}
               <span className="addressinfo-color">
                 {addr.substring(addr.length - 8)}
               </span>
