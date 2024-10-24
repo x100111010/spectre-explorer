@@ -6,6 +6,7 @@ import {
   getHashrateMax,
   getSpectredInfo,
 } from "../spectre-api-client";
+import { BPS } from "../constants";
 
 const BlockDAGBox = () => {
   const [networkName, setNetworkName] = useState("");
@@ -42,7 +43,7 @@ const BlockDAGBox = () => {
       const dag_info = JSON.parse(cachedDagInfo);
       setNetworkName(dag_info.networkName);
       setVirtualDaaScore(dag_info.virtualDaaScore);
-      const hashrateInHashesPerSecond = dag_info.difficulty * 2;
+      const hashrateInHashesPerSecond = dag_info.difficulty * 2 * BPS;
       setHashrate(formatHashrateValue(hashrateInHashesPerSecond, 2));
     }
 
@@ -71,7 +72,7 @@ const BlockDAGBox = () => {
     setNetworkName(dag_info.networkName);
     setVirtualDaaScore(dag_info.virtualDaaScore);
 
-    const hashrateInHashesPerSecond = dag_info.difficulty * 2;
+    const hashrateInHashesPerSecond = dag_info.difficulty * 2 * BPS;
     setHashrate(formatHashrateValue(hashrateInHashesPerSecond, 2));
 
     const maxHashrateInHashesPerSecond = hashrateMax.hashrate * 1e12;
@@ -98,7 +99,7 @@ const BlockDAGBox = () => {
       setNetworkName(dag_info.networkName);
       setVirtualDaaScore(dag_info.virtualDaaScore);
 
-      const hashrateInHashesPerSecond = dag_info.difficulty * 2;
+      const hashrateInHashesPerSecond = dag_info.difficulty * 2 * BPS;
       setHashrate(formatHashrateValue(hashrateInHashesPerSecond, 2));
 
       const maxHashrateInHashesPerSecond = hashrateMax.hashrate * 1e12;

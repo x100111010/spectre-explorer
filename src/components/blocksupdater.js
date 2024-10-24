@@ -1,4 +1,4 @@
-import { apiAddress } from "../addresses";
+import { apiAddress } from "../constants";
 
 let queryBlock = null;
 let blocksCache = [];

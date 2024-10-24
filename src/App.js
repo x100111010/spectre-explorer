@@ -33,7 +33,7 @@ import TxPage from "./components/TxPage";
 import Dashboard from "./Dashboard";
 import CPUStats from "./components/cpustats";
 import { getBlock } from "./spectre-api-client";
-import { apiAddress } from "./addresses";
+import { apiAddress } from "./constants";
 
 const buildVersion = process.env.REACT_APP_VERCEL_GIT_COMMIT_SHA || "xxxxxx";
 

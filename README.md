@@ -14,6 +14,7 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 - Introduced DAG visualization using `vis-network`:
 
   - Blocks/Nodes are color-coded:
+
     - White ⚪: for blocks that are part of the Selected Parent Chain (SPC). These blocks are directly linked to their selected parents, eventually tracing back to the genesis block. They are considered part of the main consensus path in the DAG.
     - Red 🔴: for blocks that are not part of the Selected Parent Chain (non-chained blocks). These blocks are valid within the DAG but do not belong to the SPC. They exist as alternative chains within the DAG, contributing to the structure but not directly influencing the main consensus path.
 
@@ -30,11 +31,15 @@ For deploying the block explorer make sure that nodejs build
 environment is set up by running `npm --version`. The build requires
 to configure the following mandatory environment variables:
 
-- `REACT_APP_API_ADDRESS` which is the public address of the
-  REST API endpoint.
+- `REACT_APP_API_ADDRESS`: This is the public address of the REST API endpoint.
 
-The API endpoint and Graph Inspector must operate on a web server
-secured with SSL.
+The API endpoint must be hosted on a web server secured with SSL.
+
+You can configure the API endpoint by setting `REACT_APP_API_ADDRESS` to one of the following:
+
+- `api.spectre-network.org` (Mainnet)
+- `api-tn.spectre-network.org` (Testnet-10)
+- `api-tn11.spectre-network.org` (Testnet-11)
 
 Optionally you can specify the explorer version to show in the
 footer:
@@ -42,13 +47,22 @@ footer:
 - `REACT_APP_VERCEL_GIT_COMMIT_SHA` which is the version of
   the running explorer instance (default: xxxxxx).
 
+- `REACT_APP_BPS` Sets the blocks per
+  second value for the explorer (default is 1).
+
+Set constants
+
+```
+export REACT_APP_VERCEL_GIT_COMMIT_SHA="$(git log -1 --date=short --format="%h" | tr -d '-')"
+export REACT_APP_API_ADDRESS=api.spectre-network.org
+export REACT_APP_BPS=1
+```
+
 Build the block explorer:
 
 ```
 git clone https://github.com/spectre-project/spectre-explorer
 cd spectre-explorer
-export REACT_APP_VERCEL_GIT_COMMIT_SHA="$(git log -1 --date=short --format="%h" | tr -d '-')"
-export REACT_APP_API_ADDRESS=api.spectre-network.org
 npm install
 ```
 
