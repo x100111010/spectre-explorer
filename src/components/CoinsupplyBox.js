@@ -4,7 +4,7 @@ import moment from "moment";
 import { useEffect, useState } from "react";
 import { numberWithCommas } from "../helper";
 import { getCoinSupply, getHalving } from "../spectre-api-client";
-import { apiAddress } from "../addresses";
+import { apiAddress } from "../constants";
 
 const CBox = () => {
   const [circCoins, setCircCoins] = useState("-");

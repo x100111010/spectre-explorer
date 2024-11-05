@@ -2,7 +2,7 @@ import { useEffect, useState, useContext } from "react";
 import { Spinner, Container } from "react-bootstrap";
 import PriceContext from "./PriceContext";
 import { getBlockdagInfo } from "../spectre-api-client";
-import { apiAddress } from "../addresses";
+import { apiAddress, BPS } from "../constants";
 
 const CPUStats = () => {
   const [cpus, setCpus] = useState([]);
@@ -30,7 +30,7 @@ const CPUStats = () => {
     const fetchNetworkInfo = async () => {
       try {
         const dag_info = await getBlockdagInfo();
-        const networkHashrate = ((dag_info.difficulty * 2) / 1_000_000).toFixed(
+        const networkHashrate = ((dag_info.difficulty * 2 * BPS) / 1e6).toFixed(
           2,
         ); // nethash; in MH/s
 
@@ -55,8 +55,8 @@ const CPUStats = () => {
   // calculate profitability using KHs
   const calculateProfitability = (cpuHashrateKhs) => {
     const { blockreward, networkHashrate } = networkInfo;
-    const ownHashrateThs = cpuHashrateKhs / 1_000; // convert to MH/s
-    const percentOfNetwork = ownHashrateThs / parseFloat(networkHashrate);
+    const cpuHashrateMhs = cpuHashrateKhs / 1e3; // convert to MH/s
+    const percentOfNetwork = cpuHashrateMhs / parseFloat(networkHashrate);
     const totalSprPerDay = 86400 * blockreward; // ~86400 blocks per day
     const sprPerDay = totalSprPerDay * percentOfNetwork;
     const usdtPerDay = sprPerDay * price; // price from PriceContext

@@ -1,4 +1,4 @@
-import { apiAddress } from "./addresses";
+import { apiAddress } from "./constants";
 
 export async function getBlock(hash) {
   const res = await fetch(`https://${apiAddress}/blocks/${hash}`, {
