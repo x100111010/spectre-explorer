@@ -327,7 +327,7 @@ function App() {
                   </span>
                   <span className="px-3 build">|</span>
                   <span className="build">
-                    Build version: {buildVersion.substring(0, 12)}
+                    Build version: {buildVersion.substring(0, 16)}
                   </span>
                 </Col>
               </Row>
@@ -386,7 +386,7 @@ function App() {
               <Row className="d-sm-none px-0">
                 <Col>
                   <span className="build">
-                    Build version: {buildVersion.substring(0, 12)}
+                    Build version: {buildVersion.substring(0, 16)}
                   </span>
                 </Col>
               </Row>
