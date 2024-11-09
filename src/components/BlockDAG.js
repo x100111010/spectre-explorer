@@ -5,6 +5,7 @@ import {
   getBlockdagInfo,
   getHashrateMax,
   getSpectredInfo,
+  getFeeEstimate,
 } from "../spectre-api-client";
 import { BPS } from "../constants";
 
@@ -14,6 +15,7 @@ const BlockDAGBox = () => {
   const [hashrate, setHashrate] = useState("");
   const [maxHashrate, setMaxHashrate] = useState("");
   const [mempool, setMempool] = useState("");
+  const [feerate, setFeerate] = useState("");
 
   const formatHashrateValue = (hashrateInHashesPerSecond, decimals) => {
     let hashrateValue = hashrateInHashesPerSecond;
@@ -38,6 +40,7 @@ const BlockDAGBox = () => {
     const cachedDagInfo = localStorage.getItem("dag_info");
     const cachedHashrateMax = localStorage.getItem("hashrate_max");
     const cachedSpectredInfo = localStorage.getItem("spectred_info");
+    const cachedFeeEstimate = localStorage.getItem("feerate");
 
     if (cachedDagInfo) {
       const dag_info = JSON.parse(cachedDagInfo);
@@ -57,18 +60,28 @@ const BlockDAGBox = () => {
       const spectredInfo = JSON.parse(cachedSpectredInfo);
       setMempool(spectredInfo.mempoolSize);
     }
+
+    if (cachedFeeEstimate) {
+      setFeerate(JSON.parse(cachedFeeEstimate));
+    }
   }, []);
 
   const initBox = useCallback(async () => {
     const dag_info = await getBlockdagInfo();
     const hashrateMax = await getHashrateMax();
     const spectredInfo = await getSpectredInfo();
+    const feeEstimate = await getFeeEstimate();
 
     // cache in localStorage
     localStorage.setItem("dag_info", JSON.stringify(dag_info));
     localStorage.setItem("hashrate_max", JSON.stringify(hashrateMax));
     localStorage.setItem("spectred_info", JSON.stringify(spectredInfo));
+    localStorage.setItem(
+      "feerate",
+      JSON.stringify(feeEstimate.priorityBucket.feerate),
+    );
 
+    setFeerate(feeEstimate.priorityBucket.feerate);
     setNetworkName(dag_info.networkName);
     setVirtualDaaScore(dag_info.virtualDaaScore);
 
@@ -106,8 +119,23 @@ const BlockDAGBox = () => {
       setMaxHashrate(formatHashrateValue(maxHashrateInHashesPerSecond, 2));
     }, 60000);
 
-    return async () => {
+    const updateInterval2 = setInterval(async () => {
+      const feeEstimate = await getFeeEstimate();
+      const spectredInfo = await getSpectredInfo();
+
+      setFeerate(feeEstimate.priorityBucket.feerate);
+      localStorage.setItem(
+        "feerate",
+        JSON.stringify(feeEstimate.priorityBucket.feerate),
+      );
+
+      setMempool(spectredInfo.mempoolSize);
+      localStorage.setItem("mempool", JSON.stringify(spectredInfo.mempoolSize));
+    }, 5000);
+
+    return () => {
       clearInterval(updateInterval);
+      clearInterval(updateInterval2);
     };
   }, [loadCachedData, initBox]);
 
@@ -166,20 +194,14 @@ const BlockDAGBox = () => {
               <h3>BLOCKDAG INFO</h3>
             </td>
           </tr>
-          <tr>
-            <td className="cardBoxElement">Network name</td>
-            <td className="pt-1 text-nowrap">{networkName}</td>
-          </tr>
+          <td className="cardBoxElement">Network name</td>
+          <td className="pt-1 text-nowrap" id="networkName">
+            {networkName}
+          </td>
           <tr>
             <td className="cardBoxElement">Virtual DAA Score</td>
             <td className="pt-1 align-top" id="virtualDaaScore">
               {virtualDaaScore}
-            </td>
-          </tr>
-          <tr>
-            <td className="cardBoxElement">Mempool count</td>
-            <td className="pt-1" id="mempool">
-              {mempool}
             </td>
           </tr>
           <tr>
@@ -192,6 +214,24 @@ const BlockDAGBox = () => {
             <td className="cardBoxElement">Max Hashrate</td>
             <td className="pt-1" id="maxHashrate">
               {maxHashrate}
+            </td>
+          </tr>
+          <tr>
+            <td className="cardBoxElement">Mempool count</td>
+            <td className="pt-1" id="mempool">
+              {mempool}
+            </td>
+          </tr>
+          <tr>
+            <td className="cardBoxElement">Current Prio Fee</td>
+            <td className="pt-1" id="priofeerate">
+              {feerate} SPR / gram
+            </td>
+          </tr>
+          <tr>
+            <td className="cardBoxElement">Fee for regular TX</td>
+            <td className="pt-1" id="normalfeerate">
+              ~ {(feerate * 3165) / 1e8} SPR
             </td>
           </tr>
         </table>

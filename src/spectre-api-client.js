@@ -44,6 +44,17 @@ export async function getSpectredInfo() {
   return res;
 }
 
+export async function getFeeEstimate() {
+  const res = await fetch(`https://${apiAddress}/info/fee-estimate`, {
+    headers: { "Access-Control-Allow-Origin": "*" },
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      return data;
+    });
+  return res;
+}
+
 export async function getHashrateMax() {
   const res = await fetch(`https://${apiAddress}/info/hashrate/max`, {
     headers: { "Access-Control-Allow-Origin": "*" },
