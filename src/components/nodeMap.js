@@ -16,42 +16,50 @@ const NodeMap = () => {
         const data = await getNodes();
         setLastUpdate(data.updated_at);
 
-        const uniqueNodes = new Map();
-
-        // remove duplicate nodes
-        const filteredNodes = Object.values(data.nodes)
-          .filter((node) => node.loc && node.id)
-          .map((node) => {
+        const validNodes = Object.entries(data.nodes)
+          .map(([ipPort, node]) => {
+            if (!node.loc) return null; // skip if loc missing
             const [lat, lng] = node.loc.split(",").map(Number);
+
+            // split ip6
+            let ip, port;
+            if (ipPort.startsWith("ipv6:[")) {
+              const match = ipPort.match(/^ipv6:\[(.+)]:(\d+)$/);
+              if (match) {
+                ip = match[1];
+                port = match[2];
+              }
+            } else {
+              // split ip4
+              [ip, port] = ipPort.split(":");
+            }
+
             const version = node.spectred?.split(":")[1]?.split("/")[0];
             return !isNaN(lat) && !isNaN(lng)
               ? {
-                  id: node.id,
                   lat,
                   lng,
+                  ip,
+                  port,
                   version,
+                  protocolVersion: node.protocolVersion,
                   color: getColorByVersion(version),
                 }
               : null;
           })
-          .filter(Boolean)
-          .filter((node) => {
-            if (uniqueNodes.has(node.id)) return false;
-            uniqueNodes.set(node.id, true);
-            return true;
-          });
+          .filter(Boolean);
 
         // version stats
-        const versionCounts = filteredNodes.reduce((acc, node) => {
+        const versionCounts = validNodes.reduce((acc, node) => {
           if (node.version) {
             acc[node.version] = (acc[node.version] || 0) + 1;
           }
           return acc;
         }, {});
 
-        setNodes(filteredNodes);
+        setNodes(validNodes);
         setVersionStats({
-          total: filteredNodes.length,
+          total: validNodes.length,
           ...versionCounts,
         });
       } catch (error) {
@@ -132,9 +140,9 @@ const NodeMap = () => {
                   url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                   attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                 />
-                {nodes.map((node) => (
+                {nodes.map((node, index) => (
                   <CircleMarker
-                    key={node.id}
+                    key={index}
                     center={[node.lat, node.lng]}
                     radius={5}
                     color={node.color}
@@ -142,7 +150,13 @@ const NodeMap = () => {
                     stroke
                   >
                     <Popup>
-                      <strong>v:</strong> {node.version}
+                      <div className="popup-content">
+                        <strong>IP:</strong> {node.ip}
+                        <br />
+                        <strong>Port:</strong> {node.port}
+                        <br />
+                        <strong>v:</strong> {node.version}
+                      </div>
                     </Popup>
                   </CircleMarker>
                 ))}
