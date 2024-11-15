@@ -1,4 +1,4 @@
-import { apiAddress } from "./constants";
+import { apiAddress, nodeData } from "./constants";
 
 export async function getBlock(hash) {
   const res = await fetch(`https://${apiAddress}/blocks/${hash}`, {
@@ -143,4 +143,12 @@ export async function getTransactions(tx_list, inputs, outputs) {
       return data;
     });
   return res;
+}
+
+export async function getNodes() {
+  const res = await fetch(`https://${nodeData}/`, { // change for testing
+    headers: { "Access-Control-Allow-Origin": "*" },
+  });
+  if (!res.ok) throw new Error(`Error fetching nodes: ${res.status}`);
+  return res.json();
 }

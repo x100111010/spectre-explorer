@@ -55,6 +55,7 @@ Set constants
 ```
 export REACT_APP_VERCEL_GIT_COMMIT_SHA="$(git log -1 --date=short --format="%h" | tr -d '-')"
 export REACT_APP_API_ADDRESS=api.spectre-network.org
+export REACT_APP_NODE_DATA=nodes.spectre-network.org
 export REACT_APP_BPS=1
 ```
 

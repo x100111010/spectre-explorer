@@ -2,29 +2,23 @@ import { useEffect, useState } from "react";
 import { Spinner, Container, Row, Col } from "react-bootstrap";
 import { MapContainer, TileLayer, CircleMarker, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
+import { getNodes } from "../spectre-api-client";
 
 const NodeMap = () => {
   const [loading, setLoading] = useState(true);
   const [nodes, setNodes] = useState([]);
-  const [versionStats, setVersionStats] = useState({
-    total: 0,
-    v14: 0,
-    v15: 0,
-    v16: 0,
-    v17: 0,
-  });
+  const [versionStats, setVersionStats] = useState({});
   const [lastUpdate, setLastUpdate] = useState(null);
 
   useEffect(() => {
-    const fetchNodes = async () => {
+    const initNodeMap = async () => {
       try {
-        const response = await fetch("http://localhost:8000");
-        if (!response.ok) throw new Error(`Error: ${response.status}`);
-        const data = await response.json();
+        const data = await getNodes();
         setLastUpdate(data.updated_at);
 
-        // remove duplicate nodes
         const uniqueNodes = new Map();
+
+        // remove duplicate nodes
         const filteredNodes = Object.values(data.nodes)
           .filter((node) => node.loc && node.id)
           .map((node) => {
@@ -47,13 +41,18 @@ const NodeMap = () => {
             return true;
           });
 
+        // version stats
+        const versionCounts = filteredNodes.reduce((acc, node) => {
+          if (node.version) {
+            acc[node.version] = (acc[node.version] || 0) + 1;
+          }
+          return acc;
+        }, {});
+
         setNodes(filteredNodes);
         setVersionStats({
           total: filteredNodes.length,
-          v14: filteredNodes.filter((n) => n.version === "0.3.14").length,
-          v15: filteredNodes.filter((n) => n.version === "0.3.15").length,
-          v16: filteredNodes.filter((n) => n.version === "0.3.16").length,
-          v17: filteredNodes.filter((n) => n.version === "0.3.17").length,
+          ...versionCounts,
         });
       } catch (error) {
         console.error("Error fetching nodes:", error);
@@ -62,22 +61,23 @@ const NodeMap = () => {
       }
     };
 
-    fetchNodes();
+    initNodeMap();
   }, []);
 
   const getColorByVersion = (version) => {
-    switch (version) {
-      case "0.3.14":
-        return "red";
-      case "0.3.15":
-        return "orange";
-      case "0.3.16":
-        return "green";
-      case "0.3.17":
-        return "yellow";
-      default:
-        return "blue";
-    }
+    if (!version) return "red";
+
+    const seed = version
+      .split("")
+      .reduce((acc, char) => acc + char.charCodeAt(0), 0);
+
+    // π to create randomness
+    const piFactor = Math.PI * seed;
+    const hue = Math.floor(((piFactor * 37) % 40) + 0);
+    const saturation = 70 + Math.floor(piFactor % 30);
+    const lightness = 50 + Math.floor(piFactor % 20);
+
+    return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
   };
 
   const formatLastUpdate = () => {
@@ -99,20 +99,21 @@ const NodeMap = () => {
 
           <Row className="mb-3 text-center">
             <Col style={{ whiteSpace: "nowrap" }}>
-              <strong>Total:</strong> {versionStats.total}
+              <strong>Total:</strong> {versionStats.total || 0}
             </Col>
-            <Col style={{ color: "red", whiteSpace: "nowrap" }}>
-              <strong>v0.3.14:</strong> {versionStats.v14}
-            </Col>
-            <Col style={{ color: "orange", whiteSpace: "nowrap" }}>
-              <strong>v0.3.15:</strong> {versionStats.v15}
-            </Col>
-            <Col style={{ color: "green", whiteSpace: "nowrap" }}>
-              <strong>v0.3.16:</strong> {versionStats.v16}
-            </Col>
-            <Col style={{ color: "yellow", whiteSpace: "nowrap" }}>
-              <strong>v0.3.17:</strong> {versionStats.v17}
-            </Col>
+            {Object.entries(versionStats)
+              .filter(([key]) => key !== "total")
+              .map(([version, count]) => (
+                <Col
+                  key={version}
+                  style={{
+                    whiteSpace: "nowrap",
+                    color: getColorByVersion(version),
+                  }}
+                >
+                  <strong>{version}:</strong> {count}
+                </Col>
+              ))}
           </Row>
 
           <div className="block-overview-content">
