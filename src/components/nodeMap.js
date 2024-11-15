@@ -168,6 +168,12 @@ const NodeMap = () => {
             <small>
               <strong>Last updated:</strong> {formatLastUpdate()}
             </small>
+            <br />
+            <small>
+              Map shows public nodes with public IPs and exposed P2P ports
+              (:18111) only. Node locations are estimated based on IP addresses
+              and may not reflect precise physical locations.
+            </small>
           </div>
         </div>
       </Container>
