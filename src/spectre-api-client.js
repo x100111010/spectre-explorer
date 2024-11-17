@@ -146,10 +146,12 @@ export async function getTransactions(tx_list, inputs, outputs) {
 }
 
 export async function getNodes() {
-  const res = await fetch(`https://${nodeData}/`, {
-    // change for testing
+  const res = await fetch(`https://${nodeData}/nodes`, {
     headers: { "Access-Control-Allow-Origin": "*" },
-  });
-  if (!res.ok) throw new Error(`Error fetching nodes: ${res.status}`);
-  return res.json();
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      return data;
+    });
+  return res;
 }
