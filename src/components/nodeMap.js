@@ -8,6 +8,7 @@ const NodeMap = () => {
   const [loading, setLoading] = useState(true);
   const [nodes, setNodes] = useState([]);
   const [versionStats, setVersionStats] = useState({});
+  const [nodeTypeStats, setNodeTypeStats] = useState({});
   const [lastUpdate, setLastUpdate] = useState(null);
 
   useEffect(() => {
@@ -57,11 +58,32 @@ const NodeMap = () => {
           return acc;
         }, {});
 
+        // node type stats
+        const nodeTypeCounts = validNodes.reduce(
+          (acc, node) => {
+            if (node.protocolVersion === 5) acc.goNodes++;
+            if (node.protocolVersion === 6) acc.rustNodes++;
+            return acc;
+          },
+          { goNodes: 0, rustNodes: 0 },
+        );
+
+        nodeTypeCounts.total = validNodes.length;
+        nodeTypeCounts.goPercentage = (
+          (nodeTypeCounts.goNodes / validNodes.length) *
+          100
+        ).toFixed(2);
+        nodeTypeCounts.rustPercentage = (
+          (nodeTypeCounts.rustNodes / validNodes.length) *
+          100
+        ).toFixed(2);
+
         setNodes(validNodes);
         setVersionStats({
           total: validNodes.length,
           ...versionCounts,
         });
+        setNodeTypeStats(nodeTypeCounts);
       } catch (error) {
         console.error("Error fetching nodes:", error);
       } finally {
@@ -104,7 +126,6 @@ const NodeMap = () => {
           <h4 className="block-overview-header text-center w-100 mt-4">
             Node Distribution
           </h4>
-
           <Row className="mb-3 text-center">
             <Col style={{ whiteSpace: "nowrap" }}>
               <strong>Total:</strong> {versionStats.total || 0}
@@ -123,7 +144,16 @@ const NodeMap = () => {
                 </Col>
               ))}
           </Row>
-
+          <Row className="mb-3 text-center">
+            <Col style={{ whiteSpace: "nowrap", color: "#007aff" }}>
+              <strong>Go Nodes:</strong> {nodeTypeStats.goNodes || 0} (
+              {nodeTypeStats.goPercentage || 0}%)
+            </Col>
+            <Col style={{ whiteSpace: "nowrap", color: "#b7410e" }}>
+              <strong>Rust Nodes:</strong> {nodeTypeStats.rustNodes || 0} (
+              {nodeTypeStats.rustPercentage || 0}%)
+            </Col>
+          </Row>
           <div className="block-overview-content">
             {loading ? (
               <Spinner animation="border" role="status">
@@ -137,8 +167,10 @@ const NodeMap = () => {
                 scrollWheelZoom
               >
                 <TileLayer
-                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                  url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+                  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+                  subdomains={["a", "b", "c", "d"]}
+                  maxZoom={20}
                 />
                 {nodes.map((node, index) => (
                   <CircleMarker
@@ -156,6 +188,13 @@ const NodeMap = () => {
                         <strong>Port:</strong> {node.port}
                         <br />
                         <strong>v:</strong> {node.version}
+                        <br />
+                        <strong>Type:</strong>{" "}
+                        {node.protocolVersion === 5
+                          ? "Go Node"
+                          : node.protocolVersion === 6
+                            ? "Rust Node"
+                            : "Unknown"}
                       </div>
                     </Popup>
                   </CircleMarker>
