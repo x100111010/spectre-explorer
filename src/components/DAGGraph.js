@@ -13,46 +13,53 @@ const DAGGraph = ({ data, maxVisibleBlocks = 50 }) => {
     const visibleBlockCount = Math.min(maxVisibleBlocks, screenBlockLimit);
     const visibleBlocks = data.slice(-visibleBlockCount);
 
+    // helper for node color
+    const getNodeColor = (block) => {
+      if (block.redparents?.length > 0) {
+        return "#ff005a"; // red - red blocks (based on parents' mergeset)
+      }
+      if (block.blueparents?.length > 0) {
+        return "#bfe6ff"; // light blue - blue blocks (based on parents' mergeset)
+      }
+      return "#ffffff"; // undefined cases
+    };
+
+    // helper for edge color
+    const getEdgeColor = (parentId, block) => {
+      if (!block.isChain) {
+        return "#808080"; // grey -> non-chained
+      }
+      if (block.redparents?.includes(parentId)) {
+        return "#ff005a"; // red parents
+      }
+      if (block.blueparents?.includes(parentId)) {
+        return "#4cc9f0"; // blue parents
+      }
+      return "#808080"; // undefined cases
+    };
+
     // prepare nodes
     const nodes = visibleBlocks.map((block) => ({
       id: block.id,
       label: `${block.id.slice(0, 4)}\n${block.id.slice(4, 8)}`, // 4x4
       shape: "box",
       color: {
-        background: block.isChain ? "#e6e8ec" : "#ff005a", // gray for chained, red for non-chained
+        background: getNodeColor(block),
         border: "#000",
       },
     }));
 
     // prepare edges
-    const edges = visibleBlocks.flatMap((block) => {
-      // edges/arrows for blueparents
-      const blueEdges = block.blueparents
-        ? block.blueparents
-            .filter((parentId) => visibleBlocks.some((b) => b.id === parentId))
-            .map((parentId) => ({
-              from: parentId,
-              to: block.id,
-              arrows: "to",
-              color: "#5581aa", // blue merge set
-            }))
-        : [];
-
-      // edges/arrows for redparents
-      const redEdges = block.redparents
-        ? block.redparents
-            .filter((parentId) => visibleBlocks.some((b) => b.id === parentId))
-            .map((parentId) => ({
-              from: parentId,
-              to: block.id,
-              arrows: "to",
-              color: "#ff005a", // red merge set
-            }))
-        : [];
-
-      // return blue and red edges
-      return [...blueEdges, ...redEdges];
-    });
+    const edges = visibleBlocks.flatMap((block) =>
+      [...(block.redparents || []), ...(block.blueparents || [])]
+        .filter((parentId) => visibleBlocks.some((b) => b.id === parentId))
+        .map((parentId) => ({
+          from: parentId,
+          to: block.id,
+          arrows: "from",
+          color: getEdgeColor(parentId, block),
+        })),
+    );
 
     const dataSet = { nodes, edges };
 
@@ -91,6 +98,7 @@ const DAGGraph = ({ data, maxVisibleBlocks = 50 }) => {
       edges: {
         color: "#116466",
         arrows: { to: { enabled: true, type: "arrow" } },
+        width: 2,
         smooth: {
           type: "cubicBezier",
           forceDirection: "horizontal",
