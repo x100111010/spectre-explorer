@@ -11,19 +11,43 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 
 ## Features
 
-- Introduced DAG visualization using `vis-network`:
+- **DAG Visualization with `vis-network`:**  
+  Provides an interactive representation of the Spectre block DAG structure, displaying parent-child relationships, block classifications and block progression.
 
-  - Blocks/Nodes are color-coded:
+---
 
-    - White ⚪: for blocks that are part of the Selected Parent Chain (SPC). These blocks are directly linked to their selected parents, eventually tracing back to the genesis block. They are considered part of the main consensus path in the DAG.
-    - Red 🔴: for blocks that are not part of the Selected Parent Chain (non-chained blocks). These blocks are valid within the DAG but do not belong to the SPC. They exist as alternative chains within the DAG, contributing to the structure but not directly influencing the main consensus path.
+### **Node Colors**
 
-  - Parent-child relationships between blocks are shown using edges (lines/arrows🏹 connecting blocks). These edges help visualize how blocks are related within the DAG:
+- **Red Nodes:** Represent blocks classified as red. These are blocks whose merge set contains too many blocks to qualify as blue, often associated with attacker blocks.
+- **Blue Nodes:** Represent blocks classified as blue. These are blocks considered honest and part of the consensus.
+- **Non-Chained Blocks:** Represent blocks not part of the selected parent chain.
+- **Chained Blocks:** Represent blocks part of the selected parent chain.
 
-    - Blue 🔹: edges represent the relationship between a block and its blue merge set parent, which indicates that the block is part of the main blue chain in the DAG. This main chain includes both chained and non-chained blocks, all of which are considered honest and relevant to the consensus.
-    - Red 🔺: edges represent the connection between a block and its red merge set parent, which are blocks outside the main blue chain. These blocks are typically viewed as potential "attacker" blocks or blocks not part of the consensus, but they are still valid within the DAG. Red blocks are rare and do not influence the consensus chain directly.
+---
 
-  - Clicking a block redirects to the BlockInfo page, which now also includes a static DAG graph
+### **Edge Colors**
+
+- **Red Blocks:** Have red edges to indicate their relationship with parents and use a red background for their nodes.
+- **Non-Chained Blocks:** Use grey edges to distinguish them from consensus-related blocks.
+
+---
+
+### **Arrow Direction and Layout**
+
+- **Arrows point from child to parent:**  
+  Each block references its parents with arrows.
+  - **Rightward:** Younger generations of blocks, with the rightmost blocks representing the DAG's tips (newest blocks).
+  - **Leftward:** Older generations of blocks, ending at the genesis (the origin of the DAG).
+
+---
+
+### **Key Concepts**
+
+- **Merge Set:** A block’s merge set includes all blocks in its past but not in the past of its selected parent. This defines what the block merges into the DAG.
+- **Selected Parent Chain (SPC):** The chain of selected parents from a block back to the genesis. This chain acts as the backbone of the DAG.
+- **Block Classification:**
+  - **Blue Blocks:** Honest blocks in the consensus, with limited quantity for security.
+  - **Red Blocks:** Attacker blocks that exceed the limit for blue classification.
 
 ## Deployment
 
