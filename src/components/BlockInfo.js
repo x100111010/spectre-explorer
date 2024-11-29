@@ -46,14 +46,35 @@ const getAmountFromOutputs = (outputs, i) => {
   }
 };
 
+// Parents derive their colors from their inclusion in the blue or red merge sets of the current block.
+// if a parent's hash is present in `mergeSetBluesHashes` of the current block, it is assigned a blue color.
+// if the parent's hash is found in `mergeSetRedsHashes`, it is assigned a red color.
+
+// Children are represented visually without a defined color. (currently)
+// (TODO: expanding our getBlock endpoint to include `GetCurrentBlockColor` rpc to determine blocks color?)
+
+// current block's color is determined by `isBlueBlock` which is passed to the `BlockLamp` component
+// `isBlueBlock` flag queryies the block's children and checking if the current block's hash is present in their `mergeSetBluesHashes`
+// if found, `isBlueBlock` is set to `true` and the block is rendered blue; otherwise, defaults to `false` (red)
+
 // create nodes for DAG graph
-const createNodes = (blocks) => {
+const createNodes = (blocks, currentBlock, isBlueBlock) => {
   return blocks.map((block) => ({
     id: block.id,
     label: `${block.id.slice(0, 4)}\n${block.id.slice(4, 8)}`, // 4x4
     shape: "box",
     color: {
-      background: block.isChain ? "#e6e8ec" : "#ff005a", // gray for chained, red for non-chained
+      background: block.isCurrentBlock
+        ? isBlueBlock
+          ? "#bfe6ff" // blue for cblock if isBlueBlock is true
+          : "#ff005a" // red for cblock if isBlueBlock is false
+        : currentBlock?.verboseData?.mergeSetBluesHashes?.includes(block.id)
+          ? "#bfe6ff" // blue for parents in blue merge set
+          : currentBlock?.verboseData?.mergeSetRedsHashes?.includes(block.id)
+            ? "#ff005a" // red for parents in red merge set
+            : block.isParent
+              ? "#d3d3d3" // default gray for other parents (if not in merge sets)
+              : "#ffffff", // white for children or other blocks
       border: "#000",
     },
   }));
@@ -62,44 +83,31 @@ const createNodes = (blocks) => {
 // create edges for DAG graph
 const createEdges = (blocks) => {
   return blocks.flatMap((block) => {
-    // edges/arrows for blueparents
-    const blueEdges = block.blueparents
-      ? block.blueparents
+    // edges for parents
+    const parentEdges = block.parents
+      ? block.parents
           .filter((parentId) => blocks.some((b) => b.id === parentId))
           .map((parentId) => ({
             from: parentId,
             to: block.id,
-            arrows: "to",
-            color: "#5581aa", // blue merge set
+            arrows: "from",
+            color: "#4cc9f0", // parent connections
           }))
       : [];
 
-    // edges/arrows for redparents
-    const redEdges = block.redparents
-      ? block.redparents
-          .filter((parentId) => blocks.some((b) => b.id === parentId))
-          .map((parentId) => ({
-            from: parentId,
-            to: block.id,
-            arrows: "to",
-            color: "#ff005a", // red merge set
-          }))
-      : [];
-
-    // edges/arrows for children
-    const childrenEdges = block.childrenHashes
+    // edges for children
+    const childEdges = block.childrenHashes
       ? block.childrenHashes
           .filter((childId) => blocks.some((b) => b.id === childId))
           .map((childId) => ({
             from: block.id,
             to: childId,
-            arrows: "to",
-            color: "#fcfcfc", // color for child
+            arrows: "from",
+            color: "#808080", // child connections
           }))
       : [];
 
-    // return blue, red, and children edges
-    return [...blueEdges, ...redEdges, ...childrenEdges];
+    return [...parentEdges, ...childEdges];
   });
 };
 
@@ -188,39 +196,32 @@ const BlockInfo = () => {
 
   // DAG data for graph visualization
   const dagData = useMemo(() => {
-    return blockInfo
-      ? [
-          {
-            id: blockInfo.verboseData.hash,
-            isChain: blockInfo.verboseData.isChainBlock,
-            blueparents: blockInfo.verboseData.mergeSetBluesHashes || [],
-            redparents: blockInfo.verboseData.mergeSetRedsHashes || [],
-            childrenHashes: blockInfo.verboseData.childrenHashes || [],
-          },
-          ...(blockInfo.header?.parents?.[0]?.parentHashes || []).map(
-            (parentId) => ({
-              id: parentId,
-              isChain: null,
-              blueparents: [],
-              redparents: [],
-              childrenHashes: [],
-            }),
-          ),
-          ...(blockInfo.verboseData.childrenHashes || []).map((childId) => ({
-            id: childId,
-            isChain: null,
-            blueparents: [],
-            redparents: [],
-            childrenHashes: [],
-          })),
-        ]
-      : [];
+    if (!blockInfo) return [];
+
+    return [
+      {
+        id: blockInfo.verboseData.hash,
+        isCurrentBlock: true,
+        parents: blockInfo.header?.parents?.[0]?.parentHashes || [],
+        childrenHashes: blockInfo.verboseData.childrenHashes || [],
+      },
+      ...(blockInfo.header?.parents?.[0]?.parentHashes || []).map(
+        (parentId) => ({
+          id: parentId,
+          isParent: true,
+        }),
+      ),
+      ...(blockInfo.verboseData.childrenHashes || []).map((childId) => ({
+        id: childId,
+        isChild: true,
+      })),
+    ];
   }, [blockInfo]);
 
   // static DAG graph
   useEffect(() => {
     if (dagData.length > 0 && containerRef.current) {
-      const nodes = createNodes(dagData);
+      const nodes = createNodes(dagData, blockInfo, isBlueBlock); // pass isBlueBlock state here
       const edges = createEdges(dagData);
 
       const dataSet = { nodes, edges };
@@ -254,8 +255,9 @@ const BlockInfo = () => {
           heightConstraint: 60,
         },
         edges: {
-          color: "#116466",
+          color: "#000000",
           arrows: { to: { enabled: true, type: "arrow" } },
+          width: 2,
           smooth: {
             type: "cubicBezier",
             forceDirection: "horizontal",
@@ -273,7 +275,7 @@ const BlockInfo = () => {
         }
       });
     }
-  }, [dagData, navigate]);
+  }, [dagData, isBlueBlock, blockInfo, navigate]);
 
   return (
     <div className="blockinfo-page">
