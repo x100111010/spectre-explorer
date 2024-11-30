@@ -16,38 +16,26 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 
 ---
 
-### **Node Colors**
+### Node Colors
 
-- **Red Nodes:** Represent blocks classified as red. These are blocks whose merge set contains too many blocks to qualify as blue, often associated with attacker blocks.
-- **Blue Nodes:** Represent blocks classified as blue. These are blocks considered honest and part of the consensus.
-- **Non-Chained Blocks:** Represent blocks not part of the selected parent chain.
-- **Chained Blocks:** Represent blocks part of the selected parent chain.
+- **Red Nodes:** Represent blocks classified as red. These are blocks whose merge sets contain too many blocks to qualify as blue, often associated with attacker blocks.
+- **Blue Nodes:** Represent blocks classified as blue. These are blocks considered honest and part of the GHOSTDAG consensus.
+- **Non-Chained Blocks:** Represent blocks not included in the GHOSTDAG-selected chain but still part of the DAG structure.
+- **Chained Blocks:** Represent blocks included in the GHOSTDAG-selected chain, which includes the Selected Parent Chain (SPC).
 
----
-
-### **Edge Colors**
+### Edge Colors
 
 - **Red Blocks:** Have red edges to indicate their relationship with parents and use a red background for their nodes.
-- **Non-Chained Blocks:** Use grey edges to distinguish them from consensus-related blocks.
+- **Non-Chained Blocks:** Use grey edges to distinguish them from consensus-related (chained) blocks.
 
----
-
-### **Arrow Direction and Layout**
+### Arrow Direction and Layout
 
 - **Arrows point from child to parent:**  
   Each block references its parents with arrows.
-  - **Rightward:** Younger generations of blocks, with the rightmost blocks representing the DAG's tips (newest blocks).
+  - **Rightward:** Younger generations of blocks, with the rightmost blocks being the DAG's tips (newest blocks).
   - **Leftward:** Older generations of blocks, ending at the genesis (the origin of the DAG).
 
 ---
-
-### **Key Concepts**
-
-- **Merge Set:** A block’s merge set includes all blocks in its past but not in the past of its selected parent. This defines what the block merges into the DAG.
-- **Selected Parent Chain (SPC):** The chain of selected parents from a block back to the genesis. This chain acts as the backbone of the DAG.
-- **Block Classification:**
-  - **Blue Blocks:** Honest blocks in the consensus, with limited quantity for security.
-  - **Red Blocks:** Attacker blocks that exceed the limit for blue classification.
 
 ## Deployment
 
