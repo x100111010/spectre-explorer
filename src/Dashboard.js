@@ -1,6 +1,6 @@
 import "bootstrap/dist/css/bootstrap.min.css";
 import "font-awesome/css/font-awesome.min.css";
-import { useContext, useState, useEffect, useRef, useCallback } from "react";
+import { useContext, useState, useEffect, useCallback } from "react";
 import {
   Button,
   Col,
@@ -37,8 +37,6 @@ function Dashboard() {
 
   const [ghostDAG, setGhostDAG] = useState([]);
 
-  const ghostDAGRef = useRef(ghostDAG);
-
   const getDAGData = useCallback(
     async (newBlock, retries = 5, delay = 1000, totalRetries = retries) => {
       try {
@@ -60,25 +58,38 @@ function Dashboard() {
           redparents: block.verboseData.mergeSetRedsHashes || [],
         };
 
-        // update with new block
+        // update with new block and mark parents as red
         setGhostDAG((prevGhostDAG) => {
-          const updatedGhostDAG = [...prevGhostDAG, parsedBlock].slice(-50); // cache
-          ghostDAGRef.current = updatedGhostDAG;
-          return updatedGhostDAG;
+          // parent as red if their hash is in this block's red merge set
+          const updatedGhostDAG = prevGhostDAG.map((parent) => {
+            if (
+              parsedBlock.isChain && // only consider chained blocks
+              parsedBlock.redparents.includes(parent.id)
+            ) {
+              console.log(
+                `Marking parent block ${parent.id} as red due to child block ${parsedBlock.id}`,
+              );
+              return {
+                ...parent,
+                isRed: true,
+              };
+            }
+            return parent;
+          });
+
+          // add the new block
+          return [...updatedGhostDAG, parsedBlock].slice(-50); // cache
         });
       } catch (error) {
-        console.error(`Error fetching block ${newBlock.block_hash}:`, error);
+        // console.error(`Error fetching block ${newBlock.block_hash}:`, error);
 
         // exponential retry logic
         if (retries > 0) {
-          console.log(`Retrying... attempts remaining: ${retries}`);
+          // console.log(`Retrying... attempts remaining: ${retries}`);
           await new Promise((resolve) => setTimeout(resolve, delay));
           return getDAGData(newBlock, retries - 1, delay * 2, totalRetries);
         } else {
-          console.error(
-            `Failed to fetch block after multiple attempts:`,
-            error,
-          );
+          // console.error(`Failed to fetch block after multiple attempts`);
         }
       }
     },

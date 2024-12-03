@@ -15,27 +15,27 @@ const DAGGraph = ({ data, maxVisibleBlocks = 50 }) => {
 
     // helper for node color
     const getNodeColor = (block) => {
-      if (block.redparents?.length > 0) {
-        return "#ff005a"; // red - red blocks (based on parents' mergeset)
+      if (block.isRed) {
+        return "#ff005a";
       }
-      if (block.blueparents?.length > 0) {
-        return "#bfe6ff"; // light blue - blue blocks (based on parents' mergeset)
-      }
-      return "#ffffff"; // undefined cases
+      return "#bfe6ff"; // default to blue
     };
 
     // helper for edge color
     const getEdgeColor = (parentId, block) => {
-      if (!block.isChain) {
-        return "#808080"; // grey -> non-chained
+      const parentBlock = visibleBlocks.find(
+        (parent) => parent.id === parentId,
+      );
+
+      if (parentBlock.isRed) {
+        return "#ff005a"; // red parent
       }
-      if (block.redparents?.includes(parentId)) {
-        return "#ff005a"; // red parents
+
+      if (block.isChain) {
+        return "#4cc9f0"; // chained blocks
       }
-      if (block.blueparents?.includes(parentId)) {
-        return "#4cc9f0"; // blue parents
-      }
-      return "#808080"; // undefined cases
+
+      return "#808080"; // non-chained blocks
     };
 
     // prepare nodes
