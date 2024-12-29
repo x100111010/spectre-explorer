@@ -1,6 +1,7 @@
 import { faDiagramProject } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useEffect, useState, useCallback } from "react";
+import moment from "moment";
 import {
   getBlockdagInfo,
   getHashrateMax,
@@ -14,6 +15,7 @@ const BlockDAGBox = () => {
   const [virtualDaaScore, setVirtualDaaScore] = useState("");
   const [hashrate, setHashrate] = useState("");
   const [maxHashrate, setMaxHashrate] = useState("");
+  const [maxHashrateTimestamp, setMaxHashrateTimestamp] = useState("");
   const [mempool, setMempool] = useState("");
   const [feerate, setFeerate] = useState("");
 
@@ -54,6 +56,7 @@ const BlockDAGBox = () => {
       const hashrateMax = JSON.parse(cachedHashrateMax);
       const maxHashrateInHashesPerSecond = hashrateMax.hashrate * 1e12; // getHashrateMax TH/s -> H/s
       setMaxHashrate(formatHashrateValue(maxHashrateInHashesPerSecond, 2));
+      setMaxHashrateTimestamp(hashrateMax.blockheader.timestamp);
     }
 
     if (cachedSpectredInfo) {
@@ -90,6 +93,7 @@ const BlockDAGBox = () => {
 
     const maxHashrateInHashesPerSecond = hashrateMax.hashrate * 1e12;
     setMaxHashrate(formatHashrateValue(maxHashrateInHashesPerSecond, 2));
+    setMaxHashrateTimestamp(hashrateMax.blockheader.timestamp);
 
     setMempool(spectredInfo.mempoolSize);
   }, []);
@@ -117,6 +121,7 @@ const BlockDAGBox = () => {
 
       const maxHashrateInHashesPerSecond = hashrateMax.hashrate * 1e12;
       setMaxHashrate(formatHashrateValue(maxHashrateInHashesPerSecond, 2));
+      setMaxHashrateTimestamp(hashrateMax.blockheader.timestamp);
     }, 60000);
 
     const updateInterval2 = setInterval(async () => {
@@ -214,6 +219,16 @@ const BlockDAGBox = () => {
             <td className="cardBoxElement">Max Hashrate</td>
             <td className="pt-1" id="maxHashrate">
               {maxHashrate}
+            </td>
+          </tr>
+          <tr>
+            <td></td>
+            <td className="pt-1">
+              <div className="text-start w-100 pe-3 pt-1">
+                ^{" "}
+                {maxHashrateTimestamp &&
+                  moment(maxHashrateTimestamp).format("YYYY-MM-DD HH:mm")}
+              </div>
             </td>
           </tr>
           <tr>
