@@ -7,6 +7,7 @@ import { numberWithCommas } from "../helper.js";
 import { getTransaction, getTransactions } from "../spectre-api-client.js";
 import BlueScoreContext from "./BlueScoreContext.js";
 import CopyButton from "./CopyButton.js";
+import NotAcceptedTooltip from "./NotAccepted.js";
 
 const getOutputFromIndex = (outputs, index) => {
   return outputs[index];
@@ -207,9 +208,10 @@ const TransactionInfo = () => {
                       {txInfo.is_accepted ? (
                         <div className="accepted-true me-3 mb-3">accepted</div>
                       ) : (
-                        <span className="accepted-false mb-2 me-">
-                          not accepted
-                        </span>
+                        <>
+                          <span className="accepted-false">not accepted</span>
+                          <NotAcceptedTooltip />
+                        </>
                       )}
                       {txInfo.is_accepted &&
                         blueScore !== 0 &&
