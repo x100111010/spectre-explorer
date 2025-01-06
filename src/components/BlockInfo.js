@@ -31,7 +31,26 @@ const BlockLamp = (props) => {
   );
 };
 
+const sompiOrSpr = (inp) => {
+  // console.log("Input to sompiOrSpr:", inp);
+  if (parseFloat(inp.toFixed(8)) < 0.00001) {
+    // console.log("Returning Sompi:", Math.round(inp * 100000000));
+    return `${Math.round(inp * 100000000)} Sompi`;
+  } else {
+    // console.log("Returning SPR:", parseFloat(inp.toFixed(8)));
+    return `${parseFloat(inp.toFixed(8))} SPR`;
+  }
+};
+
+// if the input value is very small
+// (less than 0.00001 when rounded to 8 decimal places)
+// it converts the value to Sompi by multiplying it by
+// 100,000,000 (since 1 SPR = 100,000,000 Sompi)
+
 const getAddrFromOutputs = (outputs, i) => {
+  if (!outputs) {
+    return 0;
+  }
   for (const o of outputs) {
     if (o.index === i) {
       return o.script_public_key_address;
@@ -663,7 +682,7 @@ const BlockInfo = () => {
                             </Container>
                           </Col>
                         </Col>
-                        <Col sm={5} md={4}>
+                        <Col sm={5} md={4} lg={3}>
                           <div className="utxo-header mt-3">tx amount</div>
                           <div className="utxo-value d-flex flex-row">
                             <div className="utxo-amount">
@@ -675,6 +694,37 @@ const BlockInfo = () => {
                               )}{" "}
                               SPR
                             </div>
+                          </div>
+                        </Col>
+                        <Col sm={3} md={2}>
+                          <div className="utxo-header mt-3">tx fee</div>
+                          <div className="utxo-value d-flex flex-row">
+                            {tx.inputs.length > 0 ? (
+                              <div className="">
+                                {sompiOrSpr(
+                                  (txInfo &&
+                                    tx.inputs.reduce(
+                                      (a, c) =>
+                                        a +
+                                        getAmountFromOutputs(
+                                          txInfo[
+                                            c.previousOutpoint.transactionId
+                                          ]?.outputs,
+                                          c.previousOutpoint.index,
+                                        ),
+                                      0,
+                                    )) -
+                                    numberWithCommas(
+                                      tx.outputs.reduce(
+                                        (a, b) => (a || 0) + parseInt(b.amount),
+                                        0,
+                                      ) / 100000000,
+                                    ),
+                                )}
+                              </div>
+                            ) : (
+                              "0"
+                            )}
                           </div>
                         </Col>
                         <Col sm={3} md={2}>
