@@ -9,7 +9,7 @@ const DAGGraph = ({ data, maxVisibleBlocks = 50 }) => {
 
   useEffect(() => {
     // calc visible blocks dynamically based on the screen width
-    const screenBlockLimit = Math.floor(window.innerWidth / 80); // may need some adjustment
+    const screenBlockLimit = Math.floor(window.innerWidth / 60); // may need some adjustment
     const visibleBlockCount = Math.min(maxVisibleBlocks, screenBlockLimit);
     const visibleBlocks = data.slice(-visibleBlockCount);
 
@@ -76,6 +76,10 @@ const DAGGraph = ({ data, maxVisibleBlocks = 50 }) => {
         dragNodes: false,
         zoomView: false,
         dragView: false,
+        multiselect: false,
+        selectable: true,
+        hover: false,
+        hoverConnectedEdges: false,
       },
       physics: {
         enabled: true,
@@ -113,6 +117,12 @@ const DAGGraph = ({ data, maxVisibleBlocks = 50 }) => {
 
       networkRef.current.once("stabilizationIterationsDone", () => {
         networkRef.current.setOptions({ physics: { enabled: false } });
+        networkRef.current.fit({
+          animation: {
+            duration: 500,
+            easingFunction: "easeInOutQuad",
+          },
+        });
       });
     } else {
       networkRef.current = new Network(containerRef.current, dataSet, options);
@@ -125,6 +135,12 @@ const DAGGraph = ({ data, maxVisibleBlocks = 50 }) => {
 
       networkRef.current.once("stabilizationIterationsDone", () => {
         networkRef.current.setOptions({ physics: { enabled: false } });
+        networkRef.current.fit({
+          animation: {
+            duration: 500,
+            easingFunction: "easeInOutQuad",
+          },
+        });
       });
     }
   }, [data, maxVisibleBlocks, navigate]);
