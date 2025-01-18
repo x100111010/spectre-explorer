@@ -358,16 +358,18 @@ const BlockInfo = () => {
                     </Col>
                     <Col className="blockinfo-value-mono" lg={10}>
                       <ul>
-                        {blockInfo.header.parents[0].parentHashes.map((x) => (
-                          <li>
-                            <Link
-                              className="blockinfo-link"
-                              to={`/blocks/${x}`}
-                            >
-                              {x}
-                            </Link>
-                          </li>
-                        ))}
+                        {(blockInfo.header.parents[0]?.parentHashes || []).map(
+                          (x) => (
+                            <li>
+                              <Link
+                                className="blockinfo-link"
+                                to={`/blocks/${x}`}
+                              >
+                                {x}
+                              </Link>
+                            </li>
+                          ),
+                        )}
                       </ul>
                     </Col>
                   </Row>
