@@ -8,10 +8,11 @@ const NotAcceptedTooltip = () => {
   const toggleVisibility = () => setVisible(!visible);
 
   const tooltipText = `
-    GHOSTDAG allows multiple blocks to coexist, so the 
-    same transaction can appear in several blocks.
-    The consensus accepts one and rejects the others.
-    `;
+  A transaction may appear unaccepted because miners 
+  reward their parent blocks. When parallel blocks 
+  are created with identical blue scores, only one 
+  reward transaction is accepted. In rare cases, a 
+  double-spend transaction may also be rejected.`;
 
   return (
     <OverlayTrigger
