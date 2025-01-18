@@ -16,6 +16,7 @@ import { numberWithCommas } from "../helper.js";
 import { getBlock, getTransactions } from "../spectre-api-client.js";
 import BlueScoreContext from "./BlueScoreContext.js";
 import CopyButton from "./CopyButton.js";
+import NotAcceptedTooltip from "./NotAccepted.js";
 import PriceContext from "./PriceContext.js";
 import { Network } from "vis-network/standalone";
 
@@ -702,9 +703,12 @@ const BlockInfo = () => {
                                   accepted
                                 </div>
                               ) : (
-                                <span className="accepted-false">
-                                  not accepted
-                                </span>
+                                <>
+                                  <span className="accepted-false">
+                                    not accepted
+                                  </span>
+                                  <NotAcceptedTooltip />
+                                </>
                               )
                             ) : (
                               <>-</>

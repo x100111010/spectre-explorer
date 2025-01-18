@@ -25,6 +25,7 @@ import {
 } from "../spectre-api-client.js";
 import BlueScoreContext from "./BlueScoreContext";
 import CopyButton from "./CopyButton.js";
+import NotAcceptedTooltip from "./NotAccepted.js";
 import PriceContext from "./PriceContext.js";
 import UtxoPagination from "./UtxoPagination.js";
 
@@ -570,7 +571,12 @@ const AddressInfo = () => {
                               accepted
                             </div>
                           ) : (
-                            <span className="accepted-false">not accepted</span>
+                            <>
+                              <span className="accepted-false">
+                                not accepted
+                              </span>
+                              <NotAcceptedTooltip />
+                            </>
                           )}
                           {x.is_accepted &&
                             blueScore !== 0 &&
