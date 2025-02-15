@@ -15,27 +15,25 @@ const NodeMap = () => {
     const initNodeMap = async () => {
       try {
         const data = await getNodes();
-        setLastUpdate(data.updated_at);
 
-        const validNodes = Object.entries(data.nodes)
-          .map(([ipPort, node]) => {
+        // first node timestamp as last update timestamp
+        if (data.length > 0 && data[0].metadata?.timestamp) {
+          setLastUpdate(new Date(data[0].metadata.timestamp).getTime() / 1000);
+        }
+
+        const validNodes = data
+          .map((node) => {
             if (!node.loc) return null; // skip if loc missing
             const [lat, lng] = node.loc.split(",").map(Number);
 
-            // split ip6
-            let ip, port;
-            if (ipPort.startsWith("ipv6:[")) {
-              const match = ipPort.match(/^ipv6:\[(.+)]:(\d+)$/);
-              if (match) {
-                ip = match[1];
-                port = match[2];
-              }
-            } else {
-              // split ip4
-              [ip, port] = ipPort.split(":");
-            }
+            // split ip and port
+            const [ip, port] = node.ip.split(":");
 
-            const version = node.spectred?.split(":")[1]?.split("/")[0];
+            // version from metadata.user_agent
+            const version = node.metadata.user_agent
+              ?.split(":")[1]
+              ?.split("/")[0];
+
             return !isNaN(lat) && !isNaN(lng)
               ? {
                   lat,
@@ -43,8 +41,8 @@ const NodeMap = () => {
                   ip,
                   port,
                   version,
-                  protocolVersion: node.protocolVersion,
-                  color: getColorByVersion(version),
+                  protocolVersion: node.metadata.protocol_version,
+                  color: "#ff015a",
                 }
               : null;
           })
@@ -94,29 +92,24 @@ const NodeMap = () => {
     initNodeMap();
   }, []);
 
-  const getColorByVersion = (version) => {
-    if (!version) return "red";
-
-    const seed = version
-      .split("")
-      .reduce((acc, char) => acc + char.charCodeAt(0), 0);
-
-    // π to create randomness
-    const piFactor = Math.PI * seed;
-    const hue = Math.floor(((piFactor * 37) % 40) + 0);
-    const saturation = 70 + Math.floor(piFactor % 30);
-    const lightness = 50 + Math.floor(piFactor % 20);
-
-    return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
-  };
-
   const formatLastUpdate = () => {
     if (!lastUpdate) return "Unknown";
     const elapsed = Math.floor(Date.now() / 1000) - lastUpdate;
     const hours = Math.floor(elapsed / 3600);
     const minutes = Math.floor((elapsed % 3600) / 60);
-    const seconds = elapsed % 60;
-    return `${hours}h ${minutes}m ${seconds}s ago`;
+    return `${hours}h ${minutes}m ago`;
+  };
+
+  // sort version numbers
+  const sortVersions = (versions) => {
+    return versions.sort((a, b) => {
+      const [a1, a2, a3] = a.split(".").map(Number);
+      const [b1, b2, b3] = b.split(".").map(Number);
+
+      if (a1 !== b1) return a1 - b1; // 0
+      if (a2 !== b2) return a2 - b2; // 3
+      return a3 - b3; // 14
+    });
   };
 
   return (
@@ -130,26 +123,26 @@ const NodeMap = () => {
             <Col style={{ whiteSpace: "nowrap" }}>
               <strong>Total:</strong> {versionStats.total || 0}
             </Col>
-            {Object.entries(versionStats)
-              .filter(([key]) => key !== "total")
-              .map(([version, count]) => (
-                <Col
-                  key={version}
-                  style={{
-                    whiteSpace: "nowrap",
-                    color: getColorByVersion(version),
-                  }}
-                >
-                  <strong>{version}:</strong> {count}
-                </Col>
-              ))}
+            {sortVersions(
+              Object.keys(versionStats).filter((key) => key !== "total"),
+            ).map((version) => (
+              <Col
+                key={version}
+                style={{
+                  whiteSpace: "nowrap",
+                  color: "#ff015a",
+                }}
+              >
+                <strong>{version}:</strong> {versionStats[version]}
+              </Col>
+            ))}
           </Row>
           <Row className="mb-3 text-center">
-            <Col style={{ whiteSpace: "nowrap", color: "#007aff" }}>
+            <Col style={{ whiteSpace: "nowrap", color: "#79d4fd" }}>
               <strong>Go Nodes:</strong> {nodeTypeStats.goNodes || 0} (
               {nodeTypeStats.goPercentage || 0}%)
             </Col>
-            <Col style={{ whiteSpace: "nowrap", color: "#b7410e" }}>
+            <Col style={{ whiteSpace: "nowrap", color: "#e43716" }}>
               <strong>Rust Nodes:</strong> {nodeTypeStats.rustNodes || 0} (
               {nodeTypeStats.rustPercentage || 0}%)
             </Col>
