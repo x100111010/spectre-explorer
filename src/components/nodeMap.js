@@ -10,6 +10,8 @@ const NodeMap = () => {
   const [versionStats, setVersionStats] = useState({});
   const [nodeTypeStats, setNodeTypeStats] = useState({});
   const [lastUpdate, setLastUpdate] = useState(null);
+  const [selectedVersion, setSelectedVersion] = useState(null);
+  const [selectedNodeType, setSelectedNodeType] = useState(null);
 
   useEffect(() => {
     const initNodeMap = async () => {
@@ -112,6 +114,18 @@ const NodeMap = () => {
     });
   };
 
+  // filter nodes based on selected version and node type
+  const filteredNodes = nodes.filter((node) => {
+    const matchesVersion = selectedVersion
+      ? node.version === selectedVersion
+      : true;
+    const matchesNodeType = selectedNodeType
+      ? (selectedNodeType === "Go" && node.protocolVersion === 5) ||
+        (selectedNodeType === "Rust" && node.protocolVersion === 6)
+      : true;
+    return matchesVersion && matchesNodeType;
+  });
+
   return (
     <div className="node-map-page">
       <Container className="webpage px-md-5 blocks-page-overview" fluid>
@@ -120,7 +134,13 @@ const NodeMap = () => {
             Node Distribution
           </h4>
           <Row className="mb-3 text-center">
-            <Col style={{ whiteSpace: "nowrap" }}>
+            <Col
+              style={{ whiteSpace: "nowrap", cursor: "pointer" }}
+              onClick={() => {
+                setSelectedVersion(null);
+                setSelectedNodeType(null);
+              }}
+            >
               <strong>Total:</strong> {versionStats.total || 0}
             </Col>
             {sortVersions(
@@ -131,18 +151,34 @@ const NodeMap = () => {
                 style={{
                   whiteSpace: "nowrap",
                   color: "#ff015a",
+                  cursor: "pointer",
                 }}
+                onClick={() => setSelectedVersion(version)}
               >
                 <strong>{version}:</strong> {versionStats[version]}
               </Col>
             ))}
           </Row>
           <Row className="mb-3 text-center">
-            <Col style={{ whiteSpace: "nowrap", color: "#79d4fd" }}>
+            <Col
+              style={{
+                whiteSpace: "nowrap",
+                color: "#79d4fd",
+                cursor: "pointer",
+              }}
+              onClick={() => setSelectedNodeType("Go")}
+            >
               <strong>Go Nodes:</strong> {nodeTypeStats.goNodes || 0} (
               {nodeTypeStats.goPercentage || 0}%)
             </Col>
-            <Col style={{ whiteSpace: "nowrap", color: "#e43716" }}>
+            <Col
+              style={{
+                whiteSpace: "nowrap",
+                color: "#e43716",
+                cursor: "pointer",
+              }}
+              onClick={() => setSelectedNodeType("Rust")}
+            >
               <strong>Rust Nodes:</strong> {nodeTypeStats.rustNodes || 0} (
               {nodeTypeStats.rustPercentage || 0}%)
             </Col>
@@ -165,7 +201,7 @@ const NodeMap = () => {
                   subdomains={["a", "b", "c", "d"]}
                   maxZoom={20}
                 />
-                {nodes.map((node, index) => (
+                {filteredNodes.map((node, index) => (
                   <CircleMarker
                     key={index}
                     center={[node.lat, node.lng]}
