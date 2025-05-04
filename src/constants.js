@@ -5,11 +5,15 @@ let ADDRESS_PREFIX = "spectre:";
 let NODE_LOC_API =
   process.env.NODE_LOC_API || "https://api.nodes.mainnet.spectre-network.xyz";
 
+// enable or disable the daggraph in dashboard
+let DAGGRAPH = process.env.REACT_APP_DAGGRAPH === "true" || true;
+
 let BPS = 1;
 
 switch (process.env.REACT_APP_NETWORK) {
   case "testnet-10":
     SOCKET_SERVER = "wss://api-tn.spectre-network.org";
+    // "ws://127.0.0.1:8000"
     if (!API_SERVER) {
       API_SERVER = "https://api-tn.spectre-network.org";
       ADDRESS_PREFIX = "spectretest:";
@@ -28,4 +32,12 @@ switch (process.env.REACT_APP_NETWORK) {
     break;
 }
 
-export { SOCKET_SERVER, SUFFIX, API_SERVER, ADDRESS_PREFIX, NODE_LOC_API, BPS };
+export {
+  SOCKET_SERVER,
+  SUFFIX,
+  API_SERVER,
+  ADDRESS_PREFIX,
+  NODE_LOC_API,
+  BPS,
+  DAGGRAPH,
+};

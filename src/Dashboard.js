@@ -22,7 +22,7 @@ import TxOverview from "./components/TxOverview";
 import DAGGraph from "./components/DAGGraph";
 import LastBlocksContext from "./components/LastBlocksContext";
 import { getBlock } from "./spectre-api-client";
-import { ADDRESS_PREFIX, SUFFIX } from "./constants";
+import { ADDRESS_PREFIX, SUFFIX, DAGGRAPH } from "./constants";
 
 function Dashboard() {
   const [show, setShow] = useState(false);
@@ -40,6 +40,8 @@ function Dashboard() {
 
   const getDAGData = useCallback(
     async (newBlock, retries = 5, delay = 1000, totalRetries = retries) => {
+      if (!DAGGRAPH) return;
+
       try {
         const block = await getBlock(newBlock.block_hash);
         // console.log("Block data:", block);
@@ -98,7 +100,7 @@ function Dashboard() {
   );
 
   useEffect(() => {
-    if (blocks && blocks.length > 0) {
+    if (DAGGRAPH && blocks && blocks.length > 0 && getDAGData) {
       const latestBlock = blocks[blocks.length - 1];
       getDAGData(latestBlock);
     }
@@ -203,11 +205,13 @@ function Dashboard() {
         </Container>
       </div>
       {/* DAGGraph in its own container */}
-      <div className="row3">
-        <Container fluid>
-          <DAGGraph data={ghostDAG} />
-        </Container>
-      </div>
+      {DAGGRAPH && (
+        <div className="row3">
+          <Container fluid>
+            <DAGGraph data={ghostDAG} />
+          </Container>
+        </div>
+      )}
       <div className="row4">
         <Container className="fourthRow webpage" fluid>
           <Row>
