@@ -31,6 +31,7 @@ import UtxoPagination from "./UtxoPagination.js";
 
 import QRCodeStyling from "qr-code-styling";
 import QrButton from "./QrButton";
+import { ADDRESS_PREFIX } from "../constants";
 
 const AddressInfoPage = () => {
   const { addr } = useParams();
@@ -272,13 +273,8 @@ const AddressInfo = () => {
           <Col md={12} className="mt-sm-4">
             <div className="addressinfo-header">Address</div>
             <div className="utxo-value-mono">
-              <span className="addressinfo-color">
-                {addr.startsWith("spectre:") ? "spectre:" : "spectretest:"}
-              </span>
-              {addr.substring(
-                addr.startsWith("spectre:") ? 8 : 12,
-                addr.length - 8,
-              )}
+              <span className="addressinfo-color">{ADDRESS_PREFIX}</span>
+              {addr.substring(ADDRESS_PREFIX.length, addr.length - 8)}
               <span className="addressinfo-color">
                 {addr.substring(addr.length - 8)}
               </span>

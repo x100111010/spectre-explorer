@@ -4,7 +4,7 @@ import moment from "moment";
 import { useEffect, useState } from "react";
 import { numberWithCommas } from "../helper";
 import { getCoinSupply, getHalving } from "../spectre-api-client";
-import { apiAddress } from "../constants";
+import { API_SERVER } from "../constants";
 
 const CBox = () => {
   const [circCoins, setCircCoins] = useState("-");
@@ -33,7 +33,7 @@ const CBox = () => {
       const coinSupplyResp = await getCoinSupply();
 
       const getBlockReward = async () => {
-        await fetch(`https://${apiAddress}/info/blockreward`)
+        await fetch(`${API_SERVER}/info/blockreward`)
           .then((response) => response.json())
           .then((d) => {
             const blockRewardValue = d.blockreward.toFixed(2);

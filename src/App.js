@@ -34,7 +34,7 @@ import Dashboard from "./Dashboard";
 import CPUStats from "./components/cpustats";
 import NodeMap from "./components/nodeMap";
 import { getBlock } from "./spectre-api-client";
-import { apiAddress } from "./constants";
+import { ADDRESS_PREFIX, API_SERVER, SOCKET_SERVER, SUFFIX } from "./constants";
 
 const buildVersion = process.env.REACT_APP_VERCEL_GIT_COMMIT_SHA || "xxxxxx";
 
@@ -50,7 +50,7 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 });
 
-const socket = io(`wss://${apiAddress}`, {
+const socket = io(`${SOCKET_SERVER}`, {
   path: "/ws/socket.io",
 });
 
@@ -83,7 +83,7 @@ function App() {
         })
         .catch((err) => {});
     }
-    if (v.startsWith("spectre:") || v.startsWith("spectretest:")) {
+    if (v.startsWith(ADDRESS_PREFIX)) {
       navigate(`/addresses/${v}`);
     }
 
@@ -91,18 +91,23 @@ function App() {
   };
 
   const updatePrice = () => {
-    fetch(`https://${apiAddress}/info/market-data`, {
+    fetch(`${API_SERVER}/info/market-data`, {
       headers: { "Cache-Control": "no-cache" },
     })
       .then((response) => response.json())
       .then((data) => {
-        setPrice(data["current_price"]["usd"].toFixed(5));
+        if (process.env.REACT_APP_NETWORK?.startsWith("testnet")) {
+          setPrice(0);
+        } else {
+          setPrice(data["current_price"]["usd"].toFixed(5));
+        }
         setMarketData(data);
       })
       .catch((r) => console.log(r));
   };
 
   useEffect(() => {
+    console.log("ENV: ", process.env);
     updatePrice();
 
     const intervalPrice = setInterval(() => {
@@ -184,7 +189,7 @@ function App() {
                         <div className="navbar-brand-text text-start">
                           SPECTRE
                           <br />
-                          EXPLORER
+                          EXPLORER{SUFFIX}
                         </div>
                       </div>
                     </Link>
@@ -198,7 +203,7 @@ function App() {
                       <NavLink
                         className="nav-link fs-5"
                         onClick={closeMenuIfNeeded}
-                        to={"/"}
+                        to={`/`}
                       >
                         Dashboard
                       </NavLink>
@@ -207,7 +212,7 @@ function App() {
                       <NavLink
                         className="nav-link fs-5"
                         onClick={closeMenuIfNeeded}
-                        to={"/blocks"}
+                        to={`/blocks`}
                       >
                         Blocks
                       </NavLink>
@@ -216,7 +221,7 @@ function App() {
                       <NavLink
                         className="nav-link fs-5"
                         onClick={closeMenuIfNeeded}
-                        to={"/txs"}
+                        to={`/txs`}
                       >
                         Transactions
                       </NavLink>
@@ -225,7 +230,7 @@ function App() {
                       <NavLink
                         className="nav-link fs-5"
                         onClick={closeMenuIfNeeded}
-                        to={"/cpustats"}
+                        to={`/cpustats`}
                       >
                         CPU Stats
                       </NavLink>
@@ -234,7 +239,7 @@ function App() {
                       <NavLink
                         className="nav-link fs-5"
                         onClick={closeMenuIfNeeded}
-                        to={"/nodemap"}
+                        to={`/nodemap`}
                       >
                         Node Map
                       </NavLink>
@@ -257,7 +262,7 @@ function App() {
                           name="searchbox"
                           id="search-box-high"
                           type="text"
-                          placeholder="Search for spectre:address or block"
+                          placeholder={`Search for ${ADDRESS_PREFIX}address or block`}
                         />
                         <Button
                           type="submit"
@@ -328,7 +333,7 @@ function App() {
                     >
                       <a
                         className="blockinfo-link ms-3"
-                        href={`https://${apiAddress}/`}
+                        href={`${API_SERVER}/`}
                         target="_blank"
                         rel="noopener noreferrer"
                       >
@@ -384,7 +389,7 @@ function App() {
                     >
                       <a
                         className="blockinfo-link ms-2"
-                        href={`https://${apiAddress}/`}
+                        href={`${API_SERVER}/`}
                         target="_blank"
                         rel="noopener noreferrer"
                       >

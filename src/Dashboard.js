@@ -22,6 +22,7 @@ import TxOverview from "./components/TxOverview";
 import DAGGraph from "./components/DAGGraph";
 import LastBlocksContext from "./components/LastBlocksContext";
 import { getBlock } from "./spectre-api-client";
+import { ADDRESS_PREFIX, SUFFIX } from "./constants";
 
 function Dashboard() {
   const [show, setShow] = useState(false);
@@ -121,7 +122,7 @@ function Dashboard() {
         .catch((err) => {});
     }
 
-    if (v.startsWith("spectre:") || v.startsWith("spectretest:")) {
+    if (v.startsWith(ADDRESS_PREFIX)) {
       navigate(`/addresses/${v}`);
     }
 
@@ -153,7 +154,7 @@ function Dashboard() {
               <div className="bigfont">
                 SPECTRE
                 <br />
-                EXPLORER
+                EXPLORER{SUFFIX}
               </div>
             </Col>
           </Row>
@@ -165,7 +166,7 @@ function Dashboard() {
                     className="bg-light text-dark shadow-none"
                     name="searchInput"
                     type="text"
-                    placeholder="Search for spectre:address or block"
+                    placeholder={`Search for ${ADDRESS_PREFIX}address or block`}
                   />
                   <Button
                     type="submit"

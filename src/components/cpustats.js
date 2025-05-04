@@ -2,7 +2,7 @@ import { useEffect, useState, useContext } from "react";
 import { Spinner, Container } from "react-bootstrap";
 import PriceContext from "./PriceContext";
 import { getBlockdagInfo } from "../spectre-api-client";
-import { apiAddress, BPS } from "../constants";
+import { API_SERVER } from "../constants";
 
 const CPUStats = () => {
   const [cpus, setCpus] = useState([]);
@@ -30,12 +30,10 @@ const CPUStats = () => {
     const fetchNetworkInfo = async () => {
       try {
         const dag_info = await getBlockdagInfo();
-        const networkHashrate = ((dag_info.difficulty * 2 * BPS) / 1e6).toFixed(
-          2,
-        ); // nethash; in MH/s
+        const networkHashrate = ((dag_info.difficulty * 2) / 1e6).toFixed(2); // nethash; in MH/s
 
         const blockRewardResponse = await fetch(
-          `https://${apiAddress}/info/blockreward`,
+          `${API_SERVER}/info/blockreward`,
         );
         const blockRewardData = await blockRewardResponse.json();
 
