@@ -19,7 +19,10 @@ const TxOverview = (props) => {
   const navigate = useNavigate();
 
   const onClickRow = (e) => {
-    navigate(`/txs/${e.target.closest("tr").getAttribute("txid")}`);
+    const row = e.target.closest("tr");
+    navigate(
+      `/txs/${row.getAttribute("txid")}?blockHash=${row.getAttribute("blockHash")}`,
+    );
   };
 
   const onClickAddr = (e) => {
@@ -95,6 +98,7 @@ const TxOverview = (props) => {
                       amount: output[1],
                       address: output[0],
                       txId: tx.txId,
+                      blockHash: block.block_hash,
                       outputIndex,
                     };
                   }),
@@ -102,9 +106,14 @@ const TxOverview = (props) => {
               )
               .filter(
                 (v, i, a) =>
-                  a.findIndex(
-                    (v2) => JSON.stringify(v) === JSON.stringify(v2),
-                  ) === i,
+                  a.findIndex((v2) => {
+                    const { blockHash: _, ...vWithoutBlockHash } = v;
+                    const { blockHash: __, ...v2WithoutBlockHash } = v2;
+                    return (
+                      JSON.stringify(vWithoutBlockHash) ===
+                      JSON.stringify(v2WithoutBlockHash)
+                    );
+                  }) === i,
               )
               .slice(0, props.lines)
               .map((x) => {
@@ -113,6 +122,7 @@ const TxOverview = (props) => {
                     id={x.address}
                     txid={x.txId}
                     key={x.address + x.txId + x.outputIndex}
+                    blockHash={x.blockHash}
                   >
                     <td onClick={onClickRow}>{x.txId.slice(0, 10)}</td>
                     <td onClick={onClickRow} align="right">

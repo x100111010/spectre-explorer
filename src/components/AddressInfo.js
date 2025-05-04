@@ -59,6 +59,7 @@ const AddressInfo = () => {
   const [txsInpCache, setTxsInpCache] = useState([]);
   const [loadingTxs, setLoadingTxs] = useState(true);
   const [txCount, setTxCount] = useState(null);
+  const [txCountLimitExceeded, setTxCountLimitExceeded] = useState(null);
   const [pageError, setPageError] = useState(false);
 
   const [errorLoadingUtxos, setErrorLoadingUtxos] = useState(false);
@@ -240,8 +241,9 @@ const AddressInfo = () => {
   useEffect(() => {
     if (view === "transactions") {
       loadTransactionsToShow(addr, 20, (activeTx - 1) * 20);
-      getAddressTxCount(addr).then((totalCount) => {
-        setTxCount(totalCount);
+      getAddressTxCount(addr).then((addressTxCount) => {
+        setTxCount(addressTxCount.total);
+        setTxCountLimitExceeded(addressTxCount.limit_exceeded);
       });
       getAddressUtxos(addr).then((res) => {
         setLoadingUtxos(false);
@@ -329,7 +331,10 @@ const AddressInfo = () => {
             </div>
             <div className="utxo-value ms-sm-5">
               {txCount !== null ? (
-                numberWithCommas(txCount)
+                <>
+                  {txCountLimitExceeded && ">"}
+                  {numberWithCommas(txCount)}
+                </>
               ) : (
                 <Spinner animation="border" variant="primary" />
               )}

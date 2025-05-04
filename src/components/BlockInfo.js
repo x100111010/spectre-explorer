@@ -11,7 +11,6 @@ import {
   Tooltip,
 } from "react-bootstrap";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { parsePayload } from "../bech32.js";
 import { numberWithCommas } from "../helper.js";
 import { getBlock, getTransactions } from "../spectre-api-client.js";
 import BlueScoreContext from "./BlueScoreContext.js";
@@ -161,11 +160,8 @@ const BlockInfo = () => {
         .then((res) => setIsBlueBlock(res))
         .catch((err) => console.log("ERROR", err));
 
-      let [address, miner] = ["No miner info", "No miner info"];
-
-      if (blockInfo?.transactions?.[0]?.payload) {
-        [address, miner] = parsePayload(blockInfo.transactions[0].payload);
-      }
+      const address = blockInfo.extra?.minerAddress || "No miner info";
+      const miner = blockInfo.extra?.minerInfo || "No miner info";
 
       // request TX input addresses
       const txToQuery = blockInfo.transactions
@@ -500,7 +496,7 @@ const BlockInfo = () => {
                           <div className="utxo-header">transaction id</div>
                           <div className="utxo-value-mono">
                             <Link
-                              to={`/txs/${tx.verboseData.transactionId}`}
+                              to={`/txs/${tx.verboseData.transactionId}?blockHash=${tx.verboseData.blockHash}`}
                               className="blockinfo-link"
                             >
                               {tx.verboseData.transactionId}

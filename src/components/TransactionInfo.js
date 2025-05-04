@@ -6,6 +6,7 @@ import { Link } from "react-router-dom";
 import { numberWithCommas } from "../helper.js";
 import { getTransaction, getTransactions } from "../spectre-api-client.js";
 import BlueScoreContext from "./BlueScoreContext.js";
+import { useLocation } from "react-router";
 import CopyButton from "./CopyButton.js";
 import NotAcceptedTooltip from "./NotAccepted.js";
 
@@ -16,6 +17,8 @@ const getOutputFromIndex = (outputs, index) => {
 const TransactionInfo = () => {
   const { id } = useParams();
   const [txInfo, setTxInfo] = useState();
+  const blockHash =
+    new URLSearchParams(useLocation().search).get("blockHash") || null;
   const [additionalTxInfo, setAdditionalTxInfo] = useState();
   const [showTxFee, setShowTxFee] = useState(false);
   const [, setError] = useState(false); // fix unused state setter
@@ -24,7 +27,7 @@ const TransactionInfo = () => {
   const { blueScore } = useContext(BlueScoreContext);
 
   const getTx = useCallback(() => {
-    return getTransaction(id)
+    return getTransaction(id, blockHash)
       .then((res) => {
         setTxInfo(res);
       })
@@ -33,7 +36,7 @@ const TransactionInfo = () => {
         setTxInfo(undefined);
         throw err;
       });
-  }, [id]); // added useCallback and dependency array
+  }, [id, blockHash]);
 
   useEffect(() => {
     setError(false);
@@ -164,6 +167,24 @@ const TransactionInfo = () => {
                       >
                         {txInfo.accepting_block_hash || "-"}
                       </Link>
+                    </Col>
+                  </Row>
+                  <Row className="blockinfo-row">
+                    <Col className="blockinfo-key" lg={2}>
+                      Accepting Block Time
+                    </Col>
+                    <Col className="blockinfo-value" lg={10}>
+                      {txInfo.accepting_block_time
+                        ? `${moment(parseInt(txInfo.accepting_block_time)).format("YYYY-MM-DD HH:mm:ss")} (${txInfo.accepting_block_time})`
+                        : "-"}
+                    </Col>
+                  </Row>
+                  <Row className="blockinfo-row">
+                    <Col className="blockinfo-key" lg={2}>
+                      Payload
+                    </Col>
+                    <Col className="blockinfo-value-mono" lg={10}>
+                      {txInfo.payload || "-"}
                     </Col>
                   </Row>
                   {showTxFee && (

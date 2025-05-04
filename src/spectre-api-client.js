@@ -11,10 +11,14 @@ export async function getBlock(hash) {
   return res;
 }
 
-export async function getTransaction(hash) {
-  const res = await fetch(`https://${apiAddress}/transactions/${hash}`, {
-    headers: { "Access-Control-Allow-Origin": "*" },
-  })
+export async function getTransaction(hash, blockHash) {
+  const queryParams = blockHash ? `?blockHash=${blockHash}` : "";
+  const res = await fetch(
+    `https://${apiAddress}/transactions/${hash}${queryParams}`,
+    {
+      headers: { "Access-Control-Allow-Origin": "*" },
+    },
+  )
     .then((response) => response.json())
     .then((data) => {
       return data;
@@ -95,7 +99,7 @@ export async function getAddressTxCount(addr) {
   )
     .then((response) => response.json())
     .then((data) => {
-      return data.total;
+      return data;
     });
   return res;
 }
