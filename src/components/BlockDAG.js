@@ -1,147 +1,139 @@
 import { faDiagramProject } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { useEffect, useState, useCallback } from "react";
 import moment from "moment";
+import { useContext, useEffect, useState } from "react";
 import {
   getBlockdagInfo,
-  getHashrateMax,
-  getSpectredInfo,
   getFeeEstimate,
+  getHashrate,
+  getHashrateMax,
+  // getSpectredInfo,
 } from "../spectre-api-client";
+import { numberWithCommas } from "../helper";
+import MempoolContext from "./MempoolContext";
 
 const BlockDAGBox = () => {
-  const [networkName, setNetworkName] = useState("");
-  const [virtualDaaScore, setVirtualDaaScore] = useState("");
-  const [hashrate, setHashrate] = useState("");
-  const [maxHashrate, setMaxHashrate] = useState("");
-  const [maxHashrateTimestamp, setMaxHashrateTimestamp] = useState("");
-  const [mempool, setMempool] = useState("");
-  const [feerate, setFeerate] = useState("");
+  const [networkName, setNetworkName] = useState(
+    localStorage.getItem("cacheNetworkName") || "",
+  );
+  const [virtualDaaScore, setVirtualDaaScore] = useState(
+    localStorage.getItem("cacheVirtualDaaScore") || "",
+  );
+  const [hashrate, setHashrate] = useState(
+    localStorage.getItem("cacheHashrate"),
+  );
+  const [mempoolView, setMempoolView] = useState(0);
+  const [maxHashrate, setMaxHashrate] = useState(
+    localStorage.getItem("cacheHashrateMax"),
+  );
+  const [maxHashrateTimestamp, setMaxHashrateTimestamp] = useState(
+    localStorage.getItem("cacheMaxHashrateTimestamp"),
+  );
+  const [feerate, setFeerate] = useState(localStorage.getItem("feerate"));
+  const { mempool } = useContext(MempoolContext);
 
-  const formatHashrateValue = (hashrateInHashesPerSecond, decimals) => {
-    let hashrateValue = hashrateInHashesPerSecond;
-    let unit = "H/s"; // default H/s
+  const initBox = async () => {
+    const dag_info = await getBlockdagInfo();
+    const hashrate = await getHashrate();
+    const hashrateMax = await getHashrateMax();
+    const feeEstimate = await getFeeEstimate();
+    // const spectredInfo = await getSpectredInfo();
 
-    if (hashrateValue >= 1e9) {
-      hashrateValue = hashrateValue / 1e9;
-      unit = "GH/s";
-    } else if (hashrateValue >= 1e6) {
-      hashrateValue = hashrateValue / 1e6;
-      unit = "MH/s";
-    } else if (hashrateValue >= 1e3) {
-      hashrateValue = hashrateValue / 1e3;
-      unit = "KH/s";
-    }
-
-    return `${hashrateValue.toFixed(decimals)} ${unit}`;
+    setNetworkName(dag_info.networkName);
+    localStorage.setItem("cacheNetworkName", dag_info.networkName);
+    setVirtualDaaScore(dag_info.virtualDaaScore);
+    localStorage.setItem("cacheVirtualDaaScore", dag_info.virtualDaaScore);
+    setHashrate(hashrate.hashrate * 1e12);
+    localStorage.setItem("cacheHashrate", hashrate.hashrate);
+    setMaxHashrate(hashrateMax.hashrate * 1e12);
+    localStorage.setItem("cacheHashrateMax", hashrateMax.hashrate);
+    setMaxHashrateTimestamp(hashrateMax.blockheader.timestamp);
+    localStorage.setItem(
+      "cacheMaxHashrateTimestamp",
+      hashrateMax.blockheader.timestamp,
+    );
+    setFeerate(feeEstimate.normalBuckets[0].feerate);
+    localStorage.setItem("feerate", feeEstimate.priorityBucket.feerate);
+    // setMempool(spectredInfo.mempoolSize)
+    // localStorage.setItem("mempool", spectredInfo.mempoolSize)
   };
 
-  // load cached data if available
-  const loadCachedData = useCallback(() => {
-    const cachedDagInfo = localStorage.getItem("dag_info");
-    const cachedHashrateMax = localStorage.getItem("hashrate_max");
-    const cachedSpectredInfo = localStorage.getItem("spectred_info");
-    const cachedFeeEstimate = localStorage.getItem("feerate");
-
-    if (cachedDagInfo) {
-      const dag_info = JSON.parse(cachedDagInfo);
-      setNetworkName(dag_info.networkName);
-      setVirtualDaaScore(dag_info.virtualDaaScore);
-      const hashrateInHashesPerSecond = dag_info.difficulty * 2;
-      setHashrate(formatHashrateValue(hashrateInHashesPerSecond, 2));
-    }
-
-    if (cachedHashrateMax) {
-      const hashrateMax = JSON.parse(cachedHashrateMax);
-      const maxHashrateInHashesPerSecond = hashrateMax.hashrate * 1e12; // getHashrateMax TH/s -> H/s
-      setMaxHashrate(formatHashrateValue(maxHashrateInHashesPerSecond, 2));
-      setMaxHashrateTimestamp(hashrateMax.blockheader.timestamp);
-    }
-
-    if (cachedSpectredInfo) {
-      const spectredInfo = JSON.parse(cachedSpectredInfo);
-      setMempool(spectredInfo.mempoolSize);
-    }
-
-    if (cachedFeeEstimate) {
-      setFeerate(JSON.parse(cachedFeeEstimate));
-    }
-  }, []);
-
-  const initBox = useCallback(async () => {
-    const dag_info = await getBlockdagInfo();
-    const hashrateMax = await getHashrateMax();
-    const spectredInfo = await getSpectredInfo();
-    const feeEstimate = await getFeeEstimate();
-
-    // cache in localStorage
-    localStorage.setItem("dag_info", JSON.stringify(dag_info));
-    localStorage.setItem("hashrate_max", JSON.stringify(hashrateMax));
-    localStorage.setItem("spectred_info", JSON.stringify(spectredInfo));
-    localStorage.setItem(
-      "feerate",
-      JSON.stringify(feeEstimate.priorityBucket.feerate),
-    );
-
-    setFeerate(feeEstimate.priorityBucket.feerate);
-    setNetworkName(dag_info.networkName);
-    setVirtualDaaScore(dag_info.virtualDaaScore);
-
-    const hashrateInHashesPerSecond = dag_info.difficulty * 2;
-    setHashrate(formatHashrateValue(hashrateInHashesPerSecond, 2));
-
-    const maxHashrateInHashesPerSecond = hashrateMax.hashrate * 1e12;
-    setMaxHashrate(formatHashrateValue(maxHashrateInHashesPerSecond, 2));
-    setMaxHashrateTimestamp(hashrateMax.blockheader.timestamp);
-
-    setMempool(spectredInfo.mempoolSize);
-  }, []);
-
   useEffect(() => {
-    // init cache
-    loadCachedData();
-
-    // update from api
     initBox();
-
     const updateInterval = setInterval(async () => {
       const dag_info = await getBlockdagInfo();
-      const hashrateMax = await getHashrateMax();
-
-      // cache new dag_info and update state
-      localStorage.setItem("dag_info", JSON.stringify(dag_info));
-      localStorage.setItem("hashrate_max", JSON.stringify(hashrateMax));
-
-      setNetworkName(dag_info.networkName);
       setVirtualDaaScore(dag_info.virtualDaaScore);
+      setNetworkName(dag_info.networkName);
 
-      const hashrateInHashesPerSecond = dag_info.difficulty * 2;
-      setHashrate(formatHashrateValue(hashrateInHashesPerSecond, 2));
-
-      const maxHashrateInHashesPerSecond = hashrateMax.hashrate * 1e12;
-      setMaxHashrate(formatHashrateValue(maxHashrateInHashesPerSecond, 2));
-      setMaxHashrateTimestamp(hashrateMax.blockheader.timestamp);
+      const hashrate = await getHashrate();
+      setHashrate(hashrate.hashrate * 1e12);
+      localStorage.setItem("cacheHashrate", hashrate.hashrate);
     }, 60000);
 
     const updateInterval2 = setInterval(async () => {
       const feeEstimate = await getFeeEstimate();
-      const spectredInfo = await getSpectredInfo();
-
-      setFeerate(feeEstimate.priorityBucket.feerate);
-      localStorage.setItem(
-        "feerate",
-        JSON.stringify(feeEstimate.priorityBucket.feerate),
-      );
-
-      setMempool(spectredInfo.mempoolSize);
-      localStorage.setItem("mempool", JSON.stringify(spectredInfo.mempoolSize));
+      // const spectredInfo = await getSpectredInfo();
+      setFeerate(feeEstimate.normalBuckets[0].feerate);
+      localStorage.setItem("feerate", feeEstimate.priorityBucket.feerate);
+      // setMempool(spectredInfo.mempoolSize)
+      // localStorage.setItem("mempool", spectredInfo.mempoolSize)
     }, 5000);
 
-    return () => {
+    return async () => {
       clearInterval(updateInterval);
       clearInterval(updateInterval2);
     };
-  }, [loadCachedData, initBox]);
+  }, []);
+
+  useEffect(() => {
+    // slowly in- or decrease
+    let start = mempoolView;
+    let end = mempool;
+    let steps = 5;
+    let stepSize = (end - start) / (steps - 1);
+    let stepsArr = Array.from({ length: steps }, (_, i) =>
+      Math.floor(start + i * stepSize),
+    );
+    var cnt = 0;
+    var updaterInterval = setInterval(() => {
+      // console.log(stepsArr)
+      setMempoolView(stepsArr[cnt]);
+
+      if (++cnt === stepsArr.length) {
+        clearInterval(updaterInterval);
+      }
+    }, 5);
+  }, [mempool, mempoolView]);
+
+  useEffect(
+    (e) => {
+      document.getElementById("feerate").animate(
+        [
+          // keyframes
+          { opacity: "1" },
+          { opacity: "0.6" },
+          { opacity: "1" },
+        ],
+        {
+          // timing options
+          duration: 300,
+        },
+      );
+      document.getElementById("feerateReg").animate(
+        [
+          // keyframes
+          { opacity: "1" },
+          { opacity: "0.6" },
+          { opacity: "1" },
+        ],
+        {
+          // timing options
+          duration: 300,
+        },
+      );
+    },
+    [feerate],
+  );
 
   useEffect(
     (e) => {
@@ -179,6 +171,20 @@ const BlockDAGBox = () => {
     [hashrate],
   );
 
+  function hashrateToStr(inHashrate) {
+    if (inHashrate < 1000) {
+      return `${(inHashrate / 1).toFixed(2)} H/s`;
+    } else if (inHashrate < 1000 * 1000) {
+      return `${(inHashrate / 1000).toFixed(2)} KH/s`;
+    } else if (inHashrate < 1000 * 1000 * 1000) {
+      return `${(inHashrate / 1000 / 1000).toFixed(2)} MH/s`;
+    } else if (inHashrate < 1000 * 1000 * 1000 * 1000) {
+      return `${(inHashrate / 1000 / 1000 / 1000).toFixed(2)} GH/s`;
+    } else if (inHashrate < 1000 * 1000 * 1000 * 1000 * 1000) {
+      return `${(inHashrate / 1000 / 1000 / 1000 / 1000).toFixed(2)} TH/s`;
+    }
+  }
+
   return (
     <>
       <div className="cardBox mx-0">
@@ -198,53 +204,52 @@ const BlockDAGBox = () => {
               <h3>BLOCKDAG INFO</h3>
             </td>
           </tr>
-          <td className="cardBoxElement">Network name</td>
-          <td className="pt-1 text-nowrap" id="networkName">
-            {networkName}
-          </td>
+          <tr>
+            <td className="cardBoxElement">Network name</td>
+            <td className="pt-1 text-nowrap">{networkName}</td>
+          </tr>
           <tr>
             <td className="cardBoxElement">Virtual DAA Score</td>
             <td className="pt-1 align-top" id="virtualDaaScore">
-              {virtualDaaScore}
+              {numberWithCommas(virtualDaaScore)}
             </td>
           </tr>
           <tr>
             <td className="cardBoxElement">Hashrate</td>
             <td className="pt-1" id="hashrate">
-              {hashrate}
+              {hashrateToStr(hashrate)}
             </td>
           </tr>
           <tr>
             <td className="cardBoxElement">Max Hashrate</td>
-            <td className="pt-1" id="maxHashrate">
-              {maxHashrate}
+            <td className="pt-1" id="hashrate">
+              {hashrateToStr(maxHashrate)}
             </td>
           </tr>
           <tr>
-            <td></td>
+            <td className="cardBoxElement">Max Hashrate Time</td>
             <td className="pt-1">
               <div className="text-start w-100 pe-3 pt-1">
-                ^{" "}
                 {maxHashrateTimestamp &&
                   moment(maxHashrateTimestamp).format("YYYY-MM-DD HH:mm")}
               </div>
             </td>
           </tr>
           <tr>
-            <td className="cardBoxElement">Mempool count</td>
+            <td className="cardBoxElement">Mempool size</td>
             <td className="pt-1" id="mempool">
-              {mempool}
+              {numberWithCommas(mempoolView)}
             </td>
           </tr>
           <tr>
-            <td className="cardBoxElement">Current Prio Fee</td>
-            <td className="pt-1" id="priofeerate">
-              {feerate} SPR / gram
+            <td className="cardBoxElement">Current Normal Fee</td>
+            <td className="pt-1" id="feerate">
+              {feerate} Sompi / gram
             </td>
           </tr>
           <tr>
             <td className="cardBoxElement">Fee for regular TX</td>
-            <td className="pt-1" id="normalfeerate">
+            <td className="pt-1" id="feerateReg">
               ≈{" "}
               {feerate > 300
                 ? ((feerate * 3165) / 100000000).toFixed(2)

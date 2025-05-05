@@ -58,6 +58,17 @@ export async function getFeeEstimate() {
   return res;
 }
 
+export async function getHashrate() {
+  const res = await fetch(`${API_SERVER}/info/hashrate`, {
+    headers: { "Access-Control-Allow-Origin": "*" },
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      return data;
+    });
+  return res;
+}
+
 export async function getHashrateMax() {
   const res = await fetch(`${API_SERVER}/info/hashrate/max`, {
     headers: { "Access-Control-Allow-Origin": "*" },
